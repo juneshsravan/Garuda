@@ -12,7 +12,7 @@ from app.core.config import settings
 
 
 def verify_project(is_test: bool = False):
-    name = "garuda-test (TEST_DATABASE_URL)" if is_test else "garuda-dev (DATABASE_URL)"
+    name = "garuda_test (TEST_DATABASE_URL)" if is_test else "garuda (DATABASE_URL)"
     url = settings.get_effective_database_url(is_test=is_test)
     print(f"\n==========================================")
     print(f"Connecting to {name}...")
@@ -21,17 +21,20 @@ def verify_project(is_test: bool = False):
     engine = create_engine(url, pool_pre_ping=True)
     with engine.connect() as conn:
         ver = conn.execute(text("SELECT version();")).scalar()
-        print(f"PostgreSQL Version: {ver[:40]}...")
+        print(f"PostgreSQL Version: {ver[:45]}...")
 
         # Run inspection
         inspector = inspect(engine)
         tables = sorted(inspector.get_table_names())
         print(f"\nFound {len(tables)} tables in database:")
         for idx, table in enumerate(tables, 1):
+            if table == "alembic_version":
+                print(f"  {idx:2d}. {table:<28} [ALEMBIC METADATA]")
+                continue
             # Check RLS status
             rls_res = conn.execute(
                 text(
-                    "SELECT relrowsecurity FROM pg_class WHERE oid = :tbl::regclass;"
+                    "SELECT relrowsecurity FROM pg_class WHERE oid = CAST(:tbl AS regclass);"
                 ),
                 {"tbl": table},
             ).scalar()

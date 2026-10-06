@@ -8,8 +8,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 def normalize_db_url(url: Optional[str]) -> str:
     """
-    Normalizes Supabase connection strings to SQLAlchemy + Psycopg 3 format with sslmode=require.
-    Enforces PostgreSQL only. SQLite or local fallback is strictly prohibited.
+    Normalizes PostgreSQL connection strings to SQLAlchemy + Psycopg 3 format.
+    Ensures sslmode=require for remote hosts (e.g. Supabase), while allowing local connections.
+    Enforces PostgreSQL only. SQLite fallback is strictly prohibited.
     """
     if not url or not url.strip():
         return ""
@@ -20,7 +21,7 @@ def normalize_db_url(url: Optional[str]) -> str:
     if url.startswith("sqlite"):
         raise ValueError(
             "SQLite is strictly prohibited per GARUDA architecture rules. "
-            "Supabase PostgreSQL only."
+            "PostgreSQL only."
         )
 
     # Convert schemes to postgresql+psycopg://
@@ -33,21 +34,28 @@ def normalize_db_url(url: Optional[str]) -> str:
     elif not url.startswith("postgresql+psycopg://"):
         raise ValueError(
             f"Invalid database URL scheme. PostgreSQL is required, got: {url.split('://')[0] if '://' in url else url}. "
-            "Supabase PostgreSQL only."
+            "PostgreSQL only."
         )
 
-    # Parse and ensure sslmode=require query parameter
     parsed = urlparse(url)
-    qs = parse_qs(parsed.query)
-    qs["sslmode"] = ["require"]
-    new_query = urlencode(qs, doseq=True)
-    new_parsed = parsed._replace(query=new_query)
-    return urlunparse(new_parsed)
+    hostname = (parsed.hostname or "").lower()
+    is_local = hostname in ("localhost", "127.0.0.1", "")
+
+    # For remote hosts (e.g. Supabase pooler), ensure sslmode=require if not specified
+    if not is_local:
+        qs = parse_qs(parsed.query)
+        if "sslmode" not in qs:
+            qs["sslmode"] = ["require"]
+            new_query = urlencode(qs, doseq=True)
+            new_parsed = parsed._replace(query=new_query)
+            return urlunparse(new_parsed)
+
+    return url
 
 
 class Settings(BaseSettings):
     APP_ENV: str = "development"
-    API_CORS_ORIGINS: str = "http://localhost:3000"
+    API_CORS_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000"
 
     DATABASE_URL: str = ""
     TEST_DATABASE_URL: str = ""
@@ -102,8 +110,8 @@ class Settings(BaseSettings):
             env_name = "TEST_DATABASE_URL" if is_test else "DATABASE_URL"
             raise RuntimeError(
                 f"{env_name} is not set in backend/.env. "
-                "GARUDA requires a valid Supabase PostgreSQL connection string. "
-                "SQLite or local database fallback is strictly prohibited."
+                "GARUDA requires a valid PostgreSQL connection string. "
+                "SQLite or non-PostgreSQL fallback is strictly prohibited."
             )
         return target
 
