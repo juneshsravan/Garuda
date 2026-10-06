@@ -5,7 +5,6 @@ import yaml
 
 from app.engine.analyzers.text_rules import Indicator, extract_evidence_snippet
 
-# Path to concepts lexicon
 LEXICON_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "lexicons", "concepts.yaml")
 
 _CONCEPTS_CACHE: Optional[Dict[str, Any]] = None
@@ -22,10 +21,23 @@ def load_concepts() -> Dict[str, Any]:
     return _CONCEPTS_CACHE
 
 
+def get_concept_terms(concepts: Dict[str, Any], concept_name: str) -> List[str]:
+    """Retrieves all terms across all supported languages for a given concept."""
+    c = concepts.get(concept_name, {})
+    if isinstance(c, dict):
+        terms: List[str] = []
+        for lang_terms in c.values():
+            if isinstance(lang_terms, list):
+                terms.extend(lang_terms)
+        return terms
+    elif isinstance(c, list):
+        return c
+    return []
+
+
 def find_lexicon_match(terms: List[str], text: str) -> Optional[Tuple[str, int, int]]:
     """Searches for terms in text matching on word boundaries."""
     for term in terms:
-        # Match as word boundary if ASCII, or simple substring if Indic script
         is_indic = any("\u0900" <= c <= "\u097f" or "\u0c00" <= c <= "\u0c7f" for c in term)
         if is_indic:
             idx = text.find(term.lower())
@@ -52,7 +64,16 @@ def is_negated_phrase(text: str, start: int) -> bool:
     return any(neg in prefix for neg in NEGATION_WORDS)
 
 
-# Semantic concept matchers for multi-token actions
+# Protective advice check (e.g., "Not you? Block it in the app")
+PROTECTIVE_ADVICE_PATTERNS = [
+    r"\bnot\s+you\??\s+(?:block\s+it|report\s+it)\b",
+    r"\bblock\s+(?:it|your\s+card|your\s+account)\s+in\s+the\s+[a-z0-9_-]+\s+app\b",
+    r"\bcall\s+the\s+number\s+on\s+the\s+back\s+of\s+your\s+card\b",
+    r"\breport\s+it\s+(?:via|in|through)\s+(?:the\s+)?(?:official\s+app|app)\b",
+    r"\bif\s+not\s+you,\s+call\b",
+]
+
+
 AMOUNT_REGEX = re.compile(
     r"(?:[₹$€£]|rs\.?|inr)\s*[\d,]+(?:\.\d+)?|\b\d+\s*(?:lakh|crore|thousand|bonus)\b",
     re.IGNORECASE
@@ -61,9 +82,14 @@ AMOUNT_REGEX = re.compile(
 FEE_DEMAND_PATTERNS = [
     r"\b(?:pay|deposit|send|bharo|kattandi|transfer)\s+.*?(?:fee|charges|processing|gst|tax|registration|deposit|redelivery|release)\b",
     r"\b(?:fee|charges|tax|gst)\s+(?:bharo|kattandi|do|pay|bhar)\b",
+    r"\b(?:joining|registration|processing|security|activation|membership)\s+fee\s+(?:of\s+)?(?:rs\.?|inr|[₹$])?\s*[\d,]+\b",
+    r"\b(?:rs\.?|inr|[₹$])?\s*[\d,]+\s+(?:joining|registration|processing|security|activation)\s+fee\b",
     r"\bfee\s+(?:of\s+)?[₹$]?[\d,]+\b",
     r"\bto\s+unlock\s+vip\s+tasks\s+deposit\b",
     r"\bprocessing\s+fee\b",
+    r"ప్రాసెసింగ్\s+ఫీజు",
+    r"ఫీజు.*?చెల్లించండి",
+    r"ఫీజు.*?కట్టండి",
 ]
 
 CREDENTIAL_REQUEST_PATTERNS = [
@@ -97,10 +123,20 @@ CONTACT_CTA_PATTERNS = [
     r"లింక్\s+క్లిక్",
 ]
 
-FAMILY_EMERGENCY_PATTERNS = [
-    r"\bhi\s+mom,\s+this\s+is\s+my\s+new\s+number\b",
-    r"\bmy\s+phone\s+broke\b",
-    r"\bsend\s+[₹$]?[\d,]+\s+urgently\s+to\b",
+EARNING_CLAIM_PATTERNS = [
+    r"\b(?:earn|kamao|sampadinchandi|kamaye|earning)\s+(?:rs\.?|inr|[₹$])?\s*[\d,]+(?:\s*[-/]\s*day|\s+per\s+day|\s+daily|\s+per\s+week|\s+per\s+task|\s+every\s+day)\b",
+    r"\b(?:rs\.?|inr|[₹$])?\s*[\d,]+\s*[-/]\s*day\b",
+]
+
+TASK_ARCHETYPE_PATTERNS = [
+    r"\b(?:rate|rating|review|like|subscribe|follow)\s+.*?(?:hotels|products|videos|pages|apps|places|youtube|google)\b",
+]
+
+MONEY_REQUEST_PATTERNS = [
+    r"\b(?:send|bhej|bhejo|bhej\s+de|pampu|pampandi|transfer|daal\s+de)\s+.*?(?:rs\.?|inr|[₹$])?\s*[\d,]+.*?(?:gpay|phonepe|paytm|upi|ybl|account)?\b",
+    r"\burgent(?:ly)?\s+(?:rs\.?|inr|[₹$])?\s*[\d,]+\s+(?:bhej|send|pampu|transfer)\b",
+    r"\b(?:send|bhej|bhej\s+de|pampu)\s+(?:rs\.?|inr|[₹$])?\s*[\d,]+\b",
+    r"\burgent\s+[\d,]+\s+bhej\s+de\b",
     r"\bhelp\.urgent@ybl\b",
 ]
 
@@ -113,15 +149,19 @@ def analyze_concept_combinations(search_text: str, original_text: str) -> List[I
     concepts = load_concepts()
     indicators: List[Indicator] = []
 
-    # 1. Match individual concepts
-    asset_match = find_lexicon_match(concepts.get("ASSET", {}).get("terms", []), search_text)
-    threat_match = find_lexicon_match(concepts.get("THREAT", {}).get("terms", []), search_text)
-    urgency_match = find_lexicon_match(concepts.get("URGENCY", {}).get("terms", []), search_text)
-    reward_match = find_lexicon_match(concepts.get("REWARD", {}).get("terms", []), search_text)
-    auth_match = find_lexicon_match(concepts.get("AUTHORITY", {}).get("terms", []), search_text)
-    inv_match = find_lexicon_match(concepts.get("INVESTMENT_JOB", {}).get("terms", []), search_text)
+    # 1. Match individual concepts from multilingual lexicons
+    asset_match = find_lexicon_match(get_concept_terms(concepts, "ASSET"), search_text)
+    threat_match = find_lexicon_match(get_concept_terms(concepts, "THREAT"), search_text)
+    urgency_match = find_lexicon_match(get_concept_terms(concepts, "URGENCY"), search_text)
+    reward_match = find_lexicon_match(get_concept_terms(concepts, "REWARD"), search_text)
+    auth_match = find_lexicon_match(get_concept_terms(concepts, "AUTHORITY"), search_text)
+    inv_match = find_lexicon_match(get_concept_terms(concepts, "EARNING_CLAIM"), search_text)
+    relation_match = find_lexicon_match(get_concept_terms(concepts, "RELATION_OR_NEW_NUMBER"), search_text)
 
-    # 2. Match regex-based concept actions
+    # 2. Check protective-action context
+    is_protective_threat = any(re.search(pat, search_text, re.IGNORECASE) for pat in PROTECTIVE_ADVICE_PATTERNS)
+
+    # 3. Match regex-based concept actions
     amount_m = AMOUNT_REGEX.search(search_text)
     amount_match = (amount_m.group(0), amount_m.start(), amount_m.end()) if amount_m else None
 
@@ -150,12 +190,28 @@ def analyze_concept_combinations(search_text: str, original_text: str) -> List[I
             contact_match = (m.group(0), m.start(), m.end())
             break
 
-    # Family emergency match
-    family_match = None
-    for pat in FAMILY_EMERGENCY_PATTERNS:
+    # Earning claim match
+    earning_match = None
+    for pat in EARNING_CLAIM_PATTERNS:
         m = re.search(pat, search_text, re.IGNORECASE)
         if m:
-            family_match = (m.group(0), m.start(), m.end())
+            earning_match = (m.group(0), m.start(), m.end())
+            break
+
+    # Task archetype match
+    task_match = None
+    for pat in TASK_ARCHETYPE_PATTERNS:
+        m = re.search(pat, search_text, re.IGNORECASE)
+        if m:
+            task_match = (m.group(0), m.start(), m.end())
+            break
+
+    # Money request match
+    money_match = None
+    for pat in MONEY_REQUEST_PATTERNS:
+        m = re.search(pat, search_text, re.IGNORECASE)
+        if m:
+            money_match = (m.group(0), m.start(), m.end())
             break
 
     has_scam_context = False
@@ -164,8 +220,8 @@ def analyze_concept_combinations(search_text: str, original_text: str) -> List[I
     # COMBINATION RULES
     # -------------------------------------------------------------
 
-    # A. ACCOUNT_THREAT = ASSET + THREAT
-    if asset_match and threat_match:
+    # A. ACCOUNT_THREAT = ASSET + THREAT (unless used as protective advice)
+    if asset_match and threat_match and not is_protective_threat:
         has_scam_context = True
         ev_asset = extract_evidence_snippet(original_text, asset_match[1], asset_match[2])
         ev_threat = extract_evidence_snippet(original_text, threat_match[1], threat_match[2])
@@ -183,7 +239,7 @@ def analyze_concept_combinations(search_text: str, original_text: str) -> List[I
     if reward_match and (amount_match or fee_match or contact_match or "lottery" in search_text or "prize" in search_text or "cashback" in search_text):
         has_scam_context = True
         ev_reward = extract_evidence_snippet(original_text, reward_match[1], reward_match[2])
-        is_active_lure = bool(fee_match or contact_match or "lottery" in search_text or "prize" in search_text or "claim" in search_text or "won" in search_text)
+        is_active_lure = bool(fee_match or contact_match or "lottery" in search_text or "prize" in search_text or "claim" in search_text or "won" in search_text or "గెలుచుకున్నారు" in search_text)
         weight = 0.50 if is_active_lure else 0.35
         severity = "high" if is_active_lure else "low"
         indicators.append(
@@ -197,7 +253,7 @@ def analyze_concept_combinations(search_text: str, original_text: str) -> List[I
         )
 
     # C. ADVANCE_FEE = FEE_DEMAND + (REWARD or THREAT or AUTHORITY or INVESTMENT_JOB or AMOUNT)
-    if fee_match and (reward_match or threat_match or auth_match or inv_match or amount_match):
+    if fee_match and (reward_match or threat_match or auth_match or inv_match or earning_match or amount_match or task_match):
         has_scam_context = True
         ev_fee = extract_evidence_snippet(original_text, fee_match[1], fee_match[2])
         indicators.append(
@@ -239,8 +295,8 @@ def analyze_concept_combinations(search_text: str, original_text: str) -> List[I
             )
         )
 
-    # F. UNSOLICITED_CONTACT = CONTACT_CTA + (THREAT or REWARD or FEE_DEMAND or ASSET)
-    if contact_match and (threat_match or reward_match or fee_match or asset_match):
+    # F. UNSOLICITED_CONTACT = CONTACT_CTA + (THREAT or REWARD or FEE_DEMAND or ASSET or EARNING_CLAIM or TASK_TYPE)
+    if contact_match and (threat_match or reward_match or fee_match or asset_match or earning_match or task_match or inv_match):
         has_scam_context = True
         ev_contact = extract_evidence_snippet(original_text, contact_match[1], contact_match[2])
         indicators.append(
@@ -253,11 +309,14 @@ def analyze_concept_combinations(search_text: str, original_text: str) -> List[I
             )
         )
 
-    # G. INVESTMENT_JOB_FRAUD = INVESTMENT_JOB
-    if inv_match:
+    # G. INVESTMENT_JOB_FRAUD = (EARNING_CLAIM or TASK_TYPE or INVESTMENT_JOB) + (FEE_DEMAND or CONTACT_CTA or "from home")
+    has_earning_signal = bool(inv_match or earning_match or task_match)
+    has_job_context = bool(fee_match or contact_match or "from home" in search_text or "ghar baithe" in search_text or "deposit" in search_text or "returns" in search_text)
+    if has_earning_signal and has_job_context:
         has_scam_context = True
-        ev_inv = extract_evidence_snippet(original_text, inv_match[1], inv_match[2])
-        severity = "high" if (fee_match or "guaranteed" in search_text or "vip" in search_text) else "medium"
+        lead_match = earning_match or task_match or inv_match
+        ev_inv = extract_evidence_snippet(original_text, lead_match[1], lead_match[2])
+        severity = "high" if (fee_match or "guaranteed" in search_text or "vip" in search_text or "deposit" in search_text or "joining fee" in search_text) else "medium"
         weight = 0.60 if severity == "high" else 0.50
         indicators.append(
             Indicator(
@@ -269,17 +328,18 @@ def analyze_concept_combinations(search_text: str, original_text: str) -> List[I
             )
         )
 
-    # H. FAMILY_EMERGENCY_IMPERSONATION
-    if family_match:
+    # H. IMPERSONATION_MONEY_REQUEST = RELATION_OR_NEW_NUMBER + MONEY_REQUEST
+    if relation_match and money_match:
         has_scam_context = True
-        ev_family = extract_evidence_snippet(original_text, family_match[1], family_match[2])
+        ev_rel = extract_evidence_snippet(original_text, relation_match[1], relation_match[2])
+        ev_mon = extract_evidence_snippet(original_text, money_match[1], money_match[2])
         indicators.append(
             Indicator(
-                code="FAMILY_EMERGENCY_IMPERSONATION",
-                label="Urgent family impersonation requesting immediate fund transfer",
+                code="IMPERSONATION_MONEY_REQUEST",
+                label="Friend or family impersonation requesting urgent funds transfer",
                 severity="high",
                 weight=0.60,
-                evidence=ev_family,
+                evidence=f"{ev_rel} + {ev_mon}",
             )
         )
 

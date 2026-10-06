@@ -1,0 +1,76 @@
+version: "1.0"
+dataset: "regression_exam1"
+description: "14 messages from final exam regression test set"
+
+cases:
+  # --- GENUINE ---
+  - id: 1
+    type: "safe"
+    expected_level: ["likely_safe", "suspicious"]
+    text: "Your EMI of Rs 4,500 for loan A/c XX9012 is due on 10-10-2026. Please maintain sufficient balance. -HDFC Bank"
+
+  - id: 2
+    type: "safe"
+    expected_level: ["likely_safe", "suspicious"]
+    text: "Your card ending 4417 was used for Rs 899 at Netflix. Not you? Block it in the iMobile app."
+
+  - id: 3
+    type: "safe"
+    expected_level: ["likely_safe", "suspicious"]
+    text: "Electricity bill paid successfully. Receipt no 88231. Thank you - TSSPDCL"
+
+  - id: 4
+    type: "safe"
+    expected_level: ["likely_safe", "suspicious"]
+    text: "Meeting moved to 4 PM today, please join on time."
+
+  - id: 5
+    type: "safe"
+    expected_level: ["likely_safe", "suspicious"]
+    text: "Your DigiLocker document has been issued. View it at digilocker.gov.in"
+
+  - id: 6
+    type: "safe"
+    expected_level: ["likely_safe", "suspicious"]
+    text: "आपका ऑर्डर कल डिलीवर किया जाएगा। धन्यवाद।"
+
+  - id: 7
+    type: "safe"
+    expected_level: ["likely_safe", "suspicious"]
+    text: "Repu class ki records teesukuni randi"
+
+  # --- SCAMS ---
+  - id: 8
+    type: "scam"
+    expected_level: ["high", "critical"]
+    text: "URGENT: Your SBI credit card reward points worth Rs 9,850 will lapse tonight. Claim at http://sbi-rewardz.co"
+
+  - id: 9
+    type: "scam"
+    expected_level: ["high", "critical"]
+    text: "Your Aadhaar is linked to a money laundering case. Mumbai Police will arrest you today. Call 9000000003 to verify."
+
+  - id: 10
+    type: "scam"
+    expected_level: ["medium", "high", "critical"]
+    text: "Earn Rs 800/day from home by rating hotels on Google. Joining fee Rs 500. WhatsApp 9000000004"
+
+  - id: 11
+    type: "scam"
+    expected_level: ["high", "critical"]
+    text: "आपका सिम कार्ड 24 घंटे में बंद हो जाएगा। KYC के लिए इस लिंक पर क्लिक करें।"
+
+  - id: 12
+    type: "scam"
+    expected_level: ["high", "critical"]
+    text: "అభినందనలు! మీరు ₹25,000 గెలుచుకున్నారు. ప్రాసెసింగ్ ఫీజు ₹999 చెల్లించండి."
+
+  - id: 13
+    type: "scam"
+    expected_level: ["medium", "high", "critical"]
+    text: "Bhai mera phone kho gaya, naye number se msg kar raha hoon, urgent 5000 bhej de GPay pe"
+
+  - id: 14
+    type: "scam"
+    expected_level: ["high", "critical"]
+    text: "Dear user, your electricity bill payment failed. Update now: bit.ly/elec-pay-now or power will be cut at 9 PM"

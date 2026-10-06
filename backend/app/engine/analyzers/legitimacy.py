@@ -33,23 +33,41 @@ LEGITIMACY_RULES = [
         ],
     },
     {
+        "code": "LEGIT_PROTECTIVE_ADVICE",
+        "label": "Contains authentic user protective advisory or in-app defense step",
+        "weight": 0.65,
+        "patterns": [
+            r"\bnot\s+you\??\s+(?:block\s+it|report\s+it)\b",
+            r"\bblock\s+(?:it|your\s+card|your\s+account)\s+in\s+the\s+[a-z0-9_-]+\s+app\b",
+            r"\bcall\s+the\s+number\s+on\s+the\s+back\s+of\s+your\s+card\b",
+            r"\breport\s+it\s+(?:via|in|through)\s+(?:the\s+)?(?:official\s+app|app)\b",
+            r"\bif\s+not\s+you,\s+call\b",
+        ],
+    },
+    {
         "code": "LEGIT_MASKED_ACCOUNT",
-        "label": "References masked account number (e.g. A/c XX1234)",
+        "label": "References masked account number or card ending",
         "weight": 0.50,
         "patterns": [
             r"\ba/?c\s+(?:xx|\*{2,})\d+\b",
-            r"\baccount\s+xx\d+\b",
-            r"\bcard\s+ending\s+(?:in\s+)?xx\d+\b",
+            r"\baccount\s+(?:xx|\*{2,})\d+\b",
+            r"\bcard\s+ending\s+(?:in\s+)?(?:\d{4}|xx\d{2,4})\b",
+            r"\bending\s+(?:in\s+)?\d{4}\b",
+            r"\bloan\s+a/?c\s+(?:xx|\*{2,})\d+\b",
         ],
     },
     {
         "code": "LEGIT_TRANSACTION_ALERT",
-        "label": "Legitimate transaction debit/credit notification with official dispute advice",
+        "label": "Legitimate transaction debit/credit notification or service receipt",
         "weight": 0.55,
         "patterns": [
             r"\b(?:debited\s+from|credited\s+to)\s+(?:your\s+)?a/?c\b",
             r"\bavl\s+bal\s+(?:rs\.?|[₹$])?[\d,]+\b",
-            r"\bcall\s+the\s+number\s+on\s+the\s+back\s+of\s+your\s+card\b",
+            r"\byour\s+emi\s+of\s+.*is\s+due\b",
+            r"\bpaid\s+successfully\b",
+            r"\breceipt\s+no\s+\d+\b",
+            r"\bmaintain\s+sufficient\s+balance\b",
+            r"\bwas\s+used\s+for\s+(?:rs\.?|[₹$])?[\d,]+\b",
         ],
     },
     {
@@ -69,6 +87,7 @@ LEGITIMACY_RULES = [
             r"\b(?:order|parcel)\s+is\s+out\s+for\s+delivery\b",
             r"\byour\s+(?:flipkart|amazon|myntra|zomato|swiggy)\s+order\b",
             r"\btrack\s+it\s+in\s+the\s+[a-z]+\s+app\b",
+            r"ऑर्डर\s+कल\s+डिलीवर\s+किया\s+जाएगा",
         ],
     },
     {
@@ -90,18 +109,6 @@ LEGITIMACY_RULES = [
         "patterns": [
             r"\bearned\s+[₹$]?\d+\s+cashback\s+on\s+your\s+recharge\b",
             r"\bhas\s+been\s+added\s+to\s+your\s+wallet\b",
-        ],
-    },
-    {
-        "code": "LEGIT_INFORMATIONAL_PROMO",
-        "label": "Routine educational, informational or promotional announcement",
-        "weight": 0.45,
-        "patterns": [
-            r"\bclass\s+is\s+shifted\b",
-            r"\byou\s+were\s+absent\s+for\b",
-            r"\bnotes\s+from\s+yesterday's\s+lecture\b",
-            r"\buse\s+code\s+[a-z0-9]+\s+to\s+get\s+\d+%\s+off\b",
-            r"\bt&c\s+apply\b",
         ],
     },
 ]

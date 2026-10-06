@@ -1,9 +1,8 @@
-version: "1.0"
-description: "Concept lexicons for GARUDA multi-modal detection engine across English, Hindi, Telugu, Romanized Telugu, and Hinglish"
+version: "2.0"
+description: "GARUDA multilingual concept lexicons across English, Hindi, Telugu script, Romanized Telugu, and Hinglish"
 
 ASSET:
-  terms:
-    # English
+  en:
     - "account"
     - "bank account"
     - "yono account"
@@ -24,7 +23,6 @@ ASSET:
     - "electricity"
     - "electricity connection"
     - "power connection"
-    - "power"
     - "gas connection"
     - "parcel"
     - "courier"
@@ -33,7 +31,7 @@ ASSET:
     - "phone number"
     - "profile"
     - "payment"
-    # Hindi (Devanagari)
+  hi:
     - "खाता"
     - "बैंक खाता"
     - "वॉलेट"
@@ -49,7 +47,7 @@ ASSET:
     - "कूरियर"
     - "मोबाइल नंबर"
     - "फोन नंबर"
-    # Telugu (Script)
+  te:
     - "ఖాతా"
     - "బ్యాంక్ ఖాతా"
     - "వాలెట్"
@@ -59,20 +57,31 @@ ASSET:
     - "ఆధార్"
     - "విద్యుత్"
     - "నంబర్"
-    # Romanized Telugu & Hinglish
+    - "పార్శిల్"
+  te_rom:
     - "khaatha"
     - "bank khaatha"
     - "pan card"
     - "sim card"
     - "aadhaar"
     - "bijli connection"
-    - "bijli"
-    - "bank khata"
+    - "wallet"
+    - "parcel"
+  hinglish:
     - "khata"
+    - "bank khata"
+    - "wallet"
+    - "sim"
+    - "sim card"
+    - "pan"
+    - "aadhaar"
+    - "bijli"
+    - "bijli connection"
+    - "parcel"
+    - "number"
 
 THREAT:
-  terms:
-    # English
+  en:
     - "block"
     - "blocked"
     - "blocking"
@@ -99,27 +108,36 @@ THREAT:
     - "return"
     - "returned"
     - "illegal drugs"
+    - "money laundering"
     - "bill was not updated"
-    - "phone broke"
-    # Hindi (Devanagari)
+  hi:
     - "ब्लॉक"
     - "बंद"
     - "काट दिया जाएगा"
     - "काट दिया"
+    - "काटा जाएगा"
     - "रद्द"
     - "गिरफ्तारी"
     - "अरेस्ट"
     - "कानूनी कार्रवाई"
     - "रोक"
-    # Telugu (Script)
+    - "मनी लॉन्ड्रिंग"
+  te:
     - "బ్లాక్"
     - "రద్దు"
     - "నిలిపివేయబడుతుంది"
     - "ఆపివేయబడుతుంది"
     - "మూసివేయబడుతుంది"
     - "బ్లాక్ అవుతుంది"
-    # Romanized Telugu & Hinglish
+    - "కట్ చేయబడుతుంది"
+    - "అరెస్ట్"
+  te_rom:
     - "block ayyindi"
+    - "block"
+    - "aagipotundi"
+    - "aapi vestaru"
+    - "close"
+  hinglish:
     - "block ho jayega"
     - "band ho jayega"
     - "band"
@@ -127,11 +145,10 @@ THREAT:
     - "ruka"
     - "kat jayega"
     - "return ho jayega"
-    - "aagipotundi"
+    - "arrest"
 
 URGENCY:
-  terms:
-    # English
+  en:
     - "today"
     - "tonight"
     - "now"
@@ -147,33 +164,40 @@ URGENCY:
     - "in 24 hours"
     - "2 ghante me"
     - "tonight at 9:30"
-    - "within 10 mins"
-    # Hindi (Devanagari)
+    - "at 9 pm"
+    - "will lapse tonight"
+  hi:
     - "आज"
     - "आज रात"
     - "तुरंत"
     - "अभी"
     - "जल्दी"
     - "24 घंटे"
-    # Telugu (Script)
+    - "24 घंटे में"
+    - "तत्काल"
+  te:
     - "ఈరోజు"
     - "వెంటనే"
     - "ఇప్పుడే"
     - "త్వరగా"
-    # Romanized Telugu & Hinglish
+    - "ఈ రాత్రి"
+    - "24 గంటల్లో"
+  te_rom:
     - "ee roju"
     - "ventane"
     - "ippude"
     - "tvaraga"
+  hinglish:
     - "aaj"
     - "aaj raat"
     - "turant"
     - "abhi"
     - "jaldi"
+    - "2 ghante me"
+    - "24 ghante me"
 
 REWARD:
-  terms:
-    # English
+  en:
     - "won"
     - "winner"
     - "prize"
@@ -188,7 +212,7 @@ REWARD:
     - "congrats"
     - "congratulations"
     - "selected"
-    # Hindi (Devanagari)
+  hi:
     - "इनाम"
     - "जीता"
     - "जीते"
@@ -197,25 +221,33 @@ REWARD:
     - "कैशबैक"
     - "रिफंड"
     - "पुरस्कार"
-    # Telugu (Script)
+  te:
     - "గెలుచుకున్నారు"
     - "బహుమతి"
     - "లాటరీ"
     - "క్యాష్‌బ్యాక్"
     - "అభినందనలు"
-    # Romanized Telugu & Hinglish
+  te_rom:
     - "vachindi"
     - "gelicharu"
+    - "cashback"
+    - "lottery"
+    - "bahumathi"
+    - "congrats"
+  hinglish:
     - "inaam"
     - "jeeta"
     - "badhai"
+    - "lottery"
+    - "cashback"
+    - "refund"
 
 AUTHORITY:
-  terms:
-    # English
+  en:
     - "customs"
     - "mumbai customs"
     - "police"
+    - "mumbai police"
     - "cbi"
     - "cbi officer"
     - "cyber cell"
@@ -225,40 +257,229 @@ AUTHORITY:
     - "income tax dept"
     - "electricity board"
     - "court"
-    # Hindi (Devanagari)
+  hi:
     - "कस्टम्स"
     - "कस्टम"
     - "पुलिस"
+    - "मुंबई पुलिस"
     - "सीबीआई"
     - "आयकर"
     - "आयकर विभाग"
-    # Telugu (Script)
+  te:
     - "కస్టమ్స్"
     - "పోలీస్"
+    - "ముంబై పోలీస్"
     - "సిబిఐ"
-    # Hinglish
+  te_rom:
+    - "police"
+    - "customs"
+    - "cbi"
+    - "income tax"
+  hinglish:
     - "customs"
     - "police"
+    - "mumbai police"
     - "cbi"
+    - "income tax"
 
-INVESTMENT_JOB:
-  terms:
-    # English
+FEE_DEMAND:
+  en:
+    - "processing fee"
+    - "joining fee"
+    - "registration fee"
+    - "security fee"
+    - "activation fee"
+    - "gst"
+    - "tax"
+    - "charges"
+    - "deposit"
+    - "redelivery fee"
+    - "release fee"
+  hi:
+    - "प्रोसेसिंग फीस"
+    - "जॉइनिंग फीस"
+    - "रजिस्ट्रेशन फीस"
+    - "फीस"
+    - "शुल्क"
+    - "टैक्स"
+    - "फीस भरो"
+    - "जमा करें"
+  te:
+    - "ప్రాసెసింగ్ ఫీజు"
+    - "ఫీజు"
+    - "రుసుము"
+    - "ఛార్జీలు"
+    - "చెల్లించండి"
+    - "కట్టండి"
+    - "డిపాజిట్"
+  te_rom:
+    - "processing fee"
+    - "fee kattandi"
+    - "charges kattandi"
+    - "deposit cheyyandi"
+    - "kattandi"
+  hinglish:
+    - "joining fee"
+    - "processing fee"
+    - "fee bharo"
+    - "charges bharo"
+    - "tax bharo"
+    - "deposit karo"
+    - "fee do"
+
+EARNING_CLAIM:
+  en:
+    - "earn"
+    - "earning"
+    - "per day"
+    - "/day"
+    - "daily"
+    - "per week"
+    - "per task"
     - "guaranteed returns"
-    - "guaranteed 30% returns"
-    - "guaranteed 300% returns"
-    - "returns in 1 month"
+    - "30% returns"
+    - "300% returns"
     - "vip stock tips"
-    - "stock tips"
-    - "part time job"
-    - "earn daily"
-    - "like youtube videos"
+  hi:
+    - "कमाएं"
+    - "प्रति दिन"
+    - "रोजाना"
+    - "घर बैठे कमाएं"
+    - "डेली"
+  te:
+    - "సంపాదించండి"
+    - "రోజుకు"
+    - "ప్రతి రోజు"
+    - "రోజువారీ"
+  te_rom:
+    - "sampadinchandi"
+    - "rojuki"
+    - "daily"
+    - "kamao"
+  hinglish:
+    - "kamao"
+    - "rozana"
+    - "daily"
+    - "per day"
+    - "/day"
+    - "ghar baithe kamaye"
+
+TASK_TYPE:
+  en:
+    - "rating hotels"
+    - "rate hotels"
+    - "review hotels"
     - "like videos"
+    - "like youtube videos"
+    - "subscribe"
+    - "follow"
+    - "complete tasks"
     - "vip tasks"
-    - "complete 3 tasks"
+    - "rating on google"
+  hi:
+    - "होटल रेटिंग"
+    - "वीडियो लाइक"
+    - "टास्क पूरा करें"
+    - "टास्क"
+  te:
+    - "హోటల్స్ రేటింగ్"
+    - "వీడియోలు లైక్"
+    - "టాస్క్‌లు"
+  te_rom:
+    - "rating hotels"
+    - "like videos"
+    - "tasks complete"
+  hinglish:
+    - "hotels rating"
+    - "rating karna"
+    - "video like"
     - "tasks"
-    - "instant loan"
-    - "without cibil"
-    - "cibil check"
-    - "deposit to unlock"
-    - "deposit to earn"
+
+RELATION_OR_NEW_NUMBER:
+  en:
+    - "mom"
+    - "dad"
+    - "bhai"
+    - "bro"
+    - "brother"
+    - "sister"
+    - "friend"
+    - "son"
+    - "daughter"
+    - "new number"
+    - "phone broke"
+    - "phone lost"
+  hi:
+    - "माँ"
+    - "पिताजी"
+    - "भाई"
+    - "दोस्त"
+    - "बेटा"
+    - "नया नंबर"
+    - "फोन खो गया"
+    - "फोन टूट गया"
+  te:
+    - "అమ్మ"
+    - "నాన్న"
+    - "అన్న"
+    - "తమ్ముడు"
+    - "అక్క"
+    - "చెల్లి"
+    - "మిత్రమా"
+    - "కొత్త నంబర్"
+    - "ఫోన్ పోయింది"
+  te_rom:
+    - "anna"
+    - "akka"
+    - "tammudu"
+    - "bro"
+    - "friend"
+    - "kotha number"
+    - "phone poyindi"
+  hinglish:
+    - "bhai"
+    - "bro"
+    - "bhaiya"
+    - "yaar"
+    - "dost"
+    - "naye number"
+    - "naya number"
+    - "phone kho gaya"
+    - "phone toot gaya"
+
+MONEY_REQUEST:
+  en:
+    - "send"
+    - "transfer"
+    - "urgent money"
+    - "gpay"
+    - "phonepe"
+    - "paytm"
+    - "upi"
+    - "send urgently"
+  hi:
+    - "भेजें"
+    - "भेजो"
+    - "पैसे भेजो"
+    - "ट्रांसफर करो"
+    - "जीपे"
+    - "फोनपे"
+    - "पेटीएम"
+    - "यूपीआई"
+  te:
+    - "పంపండి"
+    - "డబ్బులు పంపండి"
+    - "ట్రాన్స్‌ఫర్ చేయండి"
+  te_rom:
+    - "pampu"
+    - "pampandi"
+    - "transfer chey"
+    - "gpay lo pampu"
+  hinglish:
+    - "bhej de"
+    - "bhejo"
+    - "transfer kar"
+    - "daal de"
+    - "gpay pe"
+    - "phonepe pe"
+    - "paytm pe"
