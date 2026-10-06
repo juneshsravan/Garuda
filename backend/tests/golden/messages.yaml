@@ -1,0 +1,209 @@
+# GARUDA Golden Test Cases (Source of Truth: BUILD_PLAN Section 3 Chunk 2)
+
+cases:
+  # SCAMS (1-19)
+  - id: 1
+    type: scam
+    text: "Dear SBI customer, your YONO account will be suspended today. Update PAN immediately: http://sbi-yono-kyc.in-verify.xyz"
+    expected_level:
+      - high
+      - critical
+
+  - id: 2
+    type: scam
+    text: "Dear consumer, your electricity power will be disconnected tonight at 9:30 PM because previous month bill was not updated. Call our officer 9000000001 immediately."
+    expected_level:
+      - high
+      - critical
+
+  - id: 3
+    type: scam
+    text: "Part time job! Like YouTube videos and earn ₹3000 daily. Contact HR on Telegram @easyjobs_hr"
+    expected_level:
+      - medium
+      - high
+
+  - id: 4
+    type: scam
+    text: "Complete 3 tasks and get ₹150 bonus. To unlock VIP tasks deposit ₹2000, guaranteed 30% returns."
+    expected_level:
+      - high
+      - critical
+
+  - id: 5
+    type: scam
+    text: "Join our SEBI-registered VIP stock tips group. Guaranteed 300% returns in 1 month. Limited seats."
+    expected_level:
+      - high
+      - critical
+
+  - id: 6
+    type: scam
+    text: "Instant loan ₹5 lakh approved without CIBIL check. Pay ₹1,499 processing fee to receive the amount today."
+    expected_level:
+      - high
+      - critical
+
+  - id: 7
+    type: scam
+    text: "This is Mumbai Customs. A parcel in your name contains illegal drugs. Join a video call with a CBI officer now or face immediate arrest."
+    expected_level:
+      - high
+      - critical
+
+  - id: 8
+    type: scam
+    text: "Income Tax Dept: You are eligible for a refund of ₹15,490. Submit your bank details at http://incometax-refund.co.in-claim.top"
+    expected_level:
+      - high
+      - critical
+
+  - id: 9
+    type: scam
+    text: "KBC Lucky Draw winner! You won ₹25 lakh. Pay ₹12,500 GST to release your prize."
+    expected_level:
+      - high
+      - critical
+
+  - id: 10
+    type: scam
+    text: "I sent ₹5,000 to you by mistake. Please approve the request on your UPI app and enter your PIN to receive it."
+    expected_level:
+      - high
+      - critical
+
+  - id: 11
+    type: scam
+    text: "Hi Mom, this is my new number, my phone broke. Please send ₹20,000 urgently to help.urgent@ybl"
+    expected_level:
+      - high
+      - critical
+
+  - id: 12
+    type: scam
+    text: "Your Netflix payment failed. Re-enter your card details within 24 hours: http://netf1ix-billing.com"
+    expected_level:
+      - high
+      - critical
+
+  - id: 13
+    type: scam
+    text: "Congratulations! You won ₹500. Scan this QR immediately to claim your reward."
+    expected_level:
+      - high
+      - critical
+
+  - id: 14
+    type: scam
+    text: "बधाई हो! आपने ₹10,000 का इनाम जीता है। इनाम पाने के लिए अभी इस लिंक पर क्लिक करें।"
+    expected_level:
+      - high
+      - critical
+
+  - id: 15
+    type: scam
+    text: "आपका बैंक खाता आज बंद हो जाएगा। KYC अपडेट करने के लिए तुरंत अपना OTP साझा करें।"
+    expected_level:
+      - high
+      - critical
+
+  - id: 16
+    type: scam
+    text: "మీ బ్యాంక్ ఖాతా ఈరోజు బ్లాక్ అవుతుంది. KYC అప్‌డేట్ కోసం వెంటనే మీ OTP చెప్పండి."
+    expected_level:
+      - high
+      - critical
+
+  - id: 17
+    type: scam
+    text: "Meeku ₹5000 cashback vachindi. Ee link click chesi mee UPI PIN enter cheyandi."
+    expected_level:
+      - high
+      - critical
+
+  - id: 18
+    type: scam
+    text: "Aapka SIM card 2 ghante me band ho jayega. KYC update ke liye turant is number pe call karo."
+    expected_level:
+      - high
+      - critical
+
+  - id: 19
+    type: scam
+    text: "Sh@re y0ur 0TP n0w to av0id acc0unt bl0ck"
+    expected_level:
+      - medium
+      - high
+      - critical
+
+  # SAFE HARD NEGATIVES (20-28)
+  - id: 20
+    type: safe
+    text: "Your OTP for transaction of Rs 1,450.00 at AMAZON INDIA is 482910. Valid for 10 mins. Do NOT share OTP or password with anyone. Bank NEVER calls for OTP - HDFC Bank"
+    expected_level:
+      - likely_safe
+      - suspicious
+
+  - id: 21
+    type: safe
+    text: "Rs.450.00 debited from A/c XX1234 on 03-10-26 to VPA zomato@icici. If not you, call the number on the back of your card."
+    expected_level:
+      - likely_safe
+      - suspicious
+
+  - id: 22
+    type: safe
+    text: "Your Flipkart order for boAt earbuds will be delivered today by 8 PM."
+    expected_level:
+      - likely_safe
+      - suspicious
+
+  - id: 23
+    type: safe
+    text: "SBI never asks for your OTP, PIN or password. Do not share them with anyone."
+    expected_level:
+      - likely_safe
+
+  - id: 24
+    type: safe
+    text: "you were absent for 4th hour"
+    expected_level:
+      - likely_safe
+
+  - id: 25
+    type: safe
+    text: "The last date to pay semester fees is 15 October. Pay through the official college portal."
+    expected_level:
+      - likely_safe
+
+  - id: 26
+    type: safe
+    text: "You earned ₹25 cashback on your recharge. It has been added to your wallet."
+    expected_level:
+      - likely_safe
+
+  - id: 27
+    type: safe
+    text: "Your electricity bill of ₹1,240 is due on 20-10-2026. Pay via the official app or website."
+    expected_level:
+      - likely_safe
+
+  - id: 28
+    type: safe
+    text: "Bro, send me the notes from yesterday's lecture."
+    expected_level:
+      - likely_safe
+
+  # EDGE (29-30)
+  - id: 29
+    type: edge
+    text: "Check out the class photos: https://bit.ly/3abcXYZ"
+    expected_level:
+      - suspicious
+
+  - id: 30
+    type: edge
+    text: "😂😂👍"
+    expected_level:
+      - likely_safe
+      - unable_to_verify
