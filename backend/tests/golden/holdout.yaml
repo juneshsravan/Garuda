@@ -1,0 +1,66 @@
+version: "1.0"
+dataset: "holdout_validation"
+description: "12 unseen holdout messages to test generalization and prevent overfitting"
+
+cases:
+  # --- SCAMS ---
+  - id: 1
+    type: "scam"
+    expected_level: ["high", "critical"]
+    text: "Your Paytm KYC has expired. Your wallet will be blocked in 2 hours. Complete KYC by calling 9000000002"
+
+  - id: 2
+    type: "scam"
+    expected_level: ["high", "critical"]
+    text: "Congrats! Your mobile number won Rs 50,00,000 in the WhatsApp International Lottery. Send your Aadhaar and pay Rs 4,999 processing fee."
+
+  - id: 3
+    type: "scam"
+    expected_level: ["high", "critical"]
+    text: "Dear customer, your Airtel reward points worth Rs 7,500 expire today. Redeem now: http://airtel-reward.in-redeem.xyz"
+
+  - id: 4
+    type: "scam"
+    expected_level: ["medium", "high", "critical"]
+    text: "आपका बिजली कनेक्शन आज रात काट दिया जाएगा। तुरंत इस नंबर पर कॉल करें।"
+
+  - id: 5
+    type: "scam"
+    expected_level: ["medium", "high", "critical"]
+    text: "Mee PAN card block ayyindi, ventane ee link lo update cheyyandi"
+
+  - id: 6
+    type: "scam"
+    expected_level: ["medium", "high", "critical"]
+    text: "Sir aapka parcel customs me ruka hai, ₹1,200 fee bharo warna return ho jayega"
+
+  # --- GENUINE ---
+  - id: 7
+    type: "safe"
+    expected_level: ["likely_safe", "suspicious"]
+    text: "Rs.2,000.00 credited to your A/c XX5678 on 06-10-26 by UPI. Avl bal Rs.15,430. -SBI"
+
+  - id: 8
+    type: "safe"
+    expected_level: ["likely_safe", "suspicious"]
+    text: "Your Swiggy order is out for delivery. Track it in the Swiggy app."
+
+  - id: 9
+    type: "safe"
+    expected_level: ["likely_safe", "suspicious"]
+    text: "Reminder: Your Jio recharge expires tomorrow. Recharge via the MyJio app."
+
+  - id: 10
+    type: "safe"
+    expected_level: ["likely_safe", "suspicious"]
+    text: "Hi, class is shifted to room 204 today at 2 PM."
+
+  - id: 11
+    type: "safe"
+    expected_level: ["likely_safe", "suspicious"]
+    text: "Your Aadhaar update request is received. Track status on myaadhaar.uidai.gov.in"
+
+  - id: 12
+    type: "safe"
+    expected_level: ["likely_safe", "suspicious"]
+    text: "Use code WELCOME50 to get 50% off on your first order. T&C apply."

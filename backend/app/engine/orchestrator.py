@@ -3,7 +3,8 @@ import re
 
 from app.engine.normalize import normalize_text, detect_language
 from app.engine.extractors import extract_urls, extract_upi_details, extract_phone_numbers
-from app.engine.analyzers.text_rules import analyze_text_rules, Indicator
+from app.engine.analyzers.concept_rules import analyze_concept_combinations
+from app.engine.analyzers.text_rules import Indicator
 from app.engine.analyzers.legitimacy import analyze_legitimacy
 from app.engine.scoring import calculate_score
 from app.engine.explain import build_explanation
@@ -39,10 +40,10 @@ class DetectionEngine:
         extracted_upi = extract_upi_details(clean_text) if not is_unusable else {"vpas": [], "amounts": []}
         extracted_phones = extract_phone_numbers(clean_text) if not is_unusable else []
 
-        # 4. Analyze Text Rules (Threat Indicators)
+        # 4. Analyze Concept Combinations (Threat Indicators)
         risk_indicators = []
         if not is_unusable:
-            risk_indicators = analyze_text_rules(search_text, clean_text)
+            risk_indicators = analyze_concept_combinations(search_text, clean_text)
 
             # URL-derived threat indicators
             for url_info in extracted_urls:
@@ -70,7 +71,7 @@ class DetectionEngine:
         # 5. Analyze Legitimacy Signals
         legitimacy_signals = []
         if not is_unusable:
-            legitimacy_signals = analyze_legitimacy(search_text, clean_text)
+            legitimacy_signals = analyze_legitimacy(search_text, clean_text, extracted_urls)
 
         # 6. Scoring (Noisy-OR with Anti-Gaming Rules)
         score_data = calculate_score(

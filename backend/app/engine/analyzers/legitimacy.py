@@ -28,7 +28,7 @@ LEGITIMACY_RULES = [
             r"\bdo\s+not\s+share\s+otp\s+or\s+password\s+with\s+anyone\b",
             r"\bbank\s+never\s+calls\s+for\s+otp\b",
             r"\bsbi\s+never\s+asks\s+for\s+your\s+otp,\s+pin\s+or\s+password\b",
-            r"\bnever\s+share\s+otp\b",
+            r"\bnever\s+share\s+(?:your\s+)?(?:otp|pin|password)\b",
             r"\bdo\s+not\s+share\s+them\s+with\s+anyone\b",
         ],
     },
@@ -47,9 +47,8 @@ LEGITIMACY_RULES = [
         "label": "Legitimate transaction debit/credit notification with official dispute advice",
         "weight": 0.55,
         "patterns": [
-            r"\bdebited\s+from\s+a/?c\b.*(?:if\s+not\s+you,\s+call\s+the\s+number\s+on\s+the\s+back\s+of\s+your\s+card)\b",
-            r"\bdebited\s+from\s+a/?c\b",
-            r"\bcredited\s+to\s+a/?c\b",
+            r"\b(?:debited\s+from|credited\s+to)\s+(?:your\s+)?a/?c\b",
+            r"\bavl\s+bal\s+(?:rs\.?|[₹$])?[\d,]+\b",
             r"\bcall\s+the\s+number\s+on\s+the\s+back\s+of\s+your\s+card\b",
         ],
     },
@@ -67,44 +66,66 @@ LEGITIMACY_RULES = [
         "label": "Standard e-commerce delivery status without coercive link",
         "weight": 0.50,
         "patterns": [
-            r"\byour\s+(?:flipkart|amazon|myntra|zomato|swiggy)\s+order\s+.*will\s+be\s+delivered\b",
-            r"\border\s+for\s+.*will\s+be\s+delivered\s+today\b",
+            r"\b(?:order|parcel)\s+is\s+out\s+for\s+delivery\b",
+            r"\byour\s+(?:flipkart|amazon|myntra|zomato|swiggy)\s+order\b",
+            r"\btrack\s+it\s+in\s+the\s+[a-z]+\s+app\b",
         ],
     },
     {
         "code": "LEGIT_OFFICIAL_CHANNEL_ADVICE",
-        "label": "Directs payment strictly through verified official portal or app",
+        "label": "Directs actions strictly through verified official portal or app",
         "weight": 0.55,
         "patterns": [
             r"\bpay\s+through\s+the\s+official\s+(?:college\s+portal|website|app)\b",
-            r"\bpay\s+via\s+the\s+official\s+app\s+or\s+website\b",
+            r"\bpay\s+via\s+the\s+official\s+(?:app|website)\b",
+            r"\brecharge\s+via\s+the\s+(?:myjio|airtel|official)\s+app\b",
+            r"\btrack\s+status\s+on\s+[a-z0-9.-]+\.gov\.in\b",
+            r"\btrack\s+status\s+on\b",
         ],
     },
     {
         "code": "LEGIT_AUTOMATIC_WALLET_CREDIT",
         "label": "Automatic reward credited to internal wallet without PIN/QR action",
-        "weight": 0.50,
+        "weight": 0.70,
         "patterns": [
             r"\bearned\s+[₹$]?\d+\s+cashback\s+on\s+your\s+recharge\b",
             r"\bhas\s+been\s+added\s+to\s+your\s+wallet\b",
         ],
     },
     {
-        "code": "LEGIT_ACADEMIC_INFORMATIONAL",
-        "label": "Routine educational or personal conversational inquiry",
-        "weight": 0.40,
+        "code": "LEGIT_INFORMATIONAL_PROMO",
+        "label": "Routine educational, informational or promotional announcement",
+        "weight": 0.45,
         "patterns": [
-            r"\byou\s+were\s+absent\s+for\s+\d+(?:st|nd|rd|th)?\s+hour\b",
-            r"\bthe\s+last\s+date\s+to\s+pay\s+semester\s+fees\b",
-            r"\bsend\s+me\s+the\s+notes\s+from\s+yesterday's\s+lecture\b",
+            r"\bclass\s+is\s+shifted\b",
+            r"\byou\s+were\s+absent\s+for\b",
+            r"\bnotes\s+from\s+yesterday's\s+lecture\b",
+            r"\buse\s+code\s+[a-z0-9]+\s+to\s+get\s+\d+%\s+off\b",
+            r"\bt&c\s+apply\b",
         ],
     },
 ]
 
 
-def analyze_legitimacy(search_text: str, original_text: str) -> List[LegitimacySignal]:
+def analyze_legitimacy(
+    search_text: str, original_text: str, urls: Optional[List[Dict[str, Any]]] = None
+) -> List[LegitimacySignal]:
     """Evaluates legitimacy patterns that indicate safe, authentic communications."""
     detected: List[LegitimacySignal] = []
+
+    # Check official domain presence
+    if urls:
+        for u in urls:
+            if u.get("is_official"):
+                detected.append(
+                    LegitimacySignal(
+                        code="LEGIT_OFFICIAL_DOMAIN",
+                        label="Links directly to verified official government or corporate domain",
+                        weight=0.55,
+                        evidence=u.get("raw"),
+                    )
+                )
+                break
 
     for rule in LEGITIMACY_RULES:
         matched = False
