@@ -182,7 +182,7 @@ def test_surprise_upi_payloads():
         disp_payload = case["payload"][:47] + "..." if len(case["payload"]) > 50 else case["payload"]
 
         print(
-            f"{case['id']:<3} | {disp_payload:<50} | {case['expected_label']:<26} | {score:<5} | {level:<14} | {status_str:<6} | {details_str[:38]}"
+            f"{case['id']:<3} | {disp_payload:<48} | {case['expected_label']:<26} | {score:<5} | {level:<12} | {status_str:<6} | {details_str}"
         )
 
         assert passed, f"Surprise case {case['id']} failed: expected {case['expected_label']}, got {level} (score {score})"

@@ -33,28 +33,9 @@ SCAN_TO_RECEIVE_PATTERNS = [
     r"\bclaim\s+(?:your\s+)?(?:reward|cashback|refund)\b",
 ]
 
-# High urgency phrasing in transaction notes
-URGENT_NOTE_PATTERNS = [
-    r"\b(?:immediately|urgent|urgently|today|now|act\s+now)\b",
-    r"\b(?:within\s+\d+\s+(?:hour|hr|min|minute)s?)\b",
-    r"\b(?:account|power|electricity)\s+(?:will\s+be\s+)?(?:blocked|disconnected|suspended)\b",
-    r"\b(?:disconnection|disconnect|avoid\s+disconnection)\b",
-    r"\b(?:penalty|fine|arrest|police|cbi)\b",
-]
-
-
 def _detect_scan_to_receive(text: str) -> str | None:
     lowered = text.lower()
     for pat in SCAN_TO_RECEIVE_PATTERNS:
-        match = re.search(pat, lowered)
-        if match:
-            return match.group(0)
-    return None
-
-
-def _detect_urgent_note(text: str) -> str | None:
-    lowered = text.lower()
-    for pat in URGENT_NOTE_PATTERNS:
         match = re.search(pat, lowered)
         if match:
             return match.group(0)
@@ -234,37 +215,53 @@ def analyze_qr_payload(payload: str) -> dict[str, Any]:
                 )
             )
 
-        # Flag 4: High urgency pressure in note text
-        urgent_match = _detect_urgent_note(note)
-        if urgent_match:
-            risk_indicators.append(
-                Indicator(
-                    code="UPI_URGENT_NOTE_PRESSURE",
-                    label="High urgency or intimidation language in payment description",
-                    severity="high",
-                    weight=0.45,
-                    evidence=f"Note: '{note}'",
-                )
-            )
-
-        # Flag 5: Run note text (tn) through existing message detection engine
+        # Flag 4: Evaluate transaction note text (tn) through shared message engine
+        # ARCHITECTURE 8.5 & 8.8: Use the existing message engine rules, not duplicate note rules
         if note:
             try:
                 from app.engine import engine as message_engine
-                msg_analysis = message_engine.analyze(note)
-                for ind_dict in msg_analysis.get("indicators", []):
-                    code = ind_dict.get("code")
-                    # Avoid duplicate codes
-                    if not any(r.code == code for r in risk_indicators):
-                        risk_indicators.append(
-                            Indicator(
-                                code=code,
-                                label=f"Note content indicator: {ind_dict.get('label', '')}",
-                                severity=ind_dict.get("severity", "medium"),
-                                weight=min(ind_dict.get("weight", 0.40), 0.50),
-                                evidence=ind_dict.get("evidence", note),
+
+                # Run note through message engine concept rules
+                eval_texts = [note]
+                if payee_name:
+                    eval_texts.append(f"{payee_name}: {note}")
+                    claimed_brand = claims_brand_or_authority(payee_name)
+                    if claimed_brand and claimed_brand in {
+                        "electricity", "power", "bescom", "mseb", "tneb", "uppcl",
+                        "dhbvn", "tsspdcl", "tssnpdcl", "tgspdcl", "tgnpdcl",
+                        "bses", "wbsedcl", "cesc", "discom", "bijli", "vidyut",
+                    }:
+                        eval_texts.append(f"{payee_name} electricity board: {note}")
+
+                seen_msg_codes = set()
+                for txt in eval_texts:
+                    msg_analysis = message_engine.analyze(txt)
+                    for ind_dict in msg_analysis.get("indicators", []):
+                        code = ind_dict.get("code")
+                        if code and code not in seen_msg_codes and not any(r.code == code for r in risk_indicators):
+                            seen_msg_codes.add(code)
+                            w = float(ind_dict.get("weight", 0.50))
+                            risk_indicators.append(
+                                Indicator(
+                                    code=code,
+                                    label=ind_dict.get("label", code),
+                                    severity=ind_dict.get("severity", "medium"),
+                                    weight=min(w, 0.90),
+                                    evidence=ind_dict.get("evidence", note),
+                                )
                             )
-                        )
+                    for leg_dict in msg_analysis.get("legitimacy_signals", []):
+                        code = leg_dict.get("code")
+                        if code and not any(l.code == code for l in legitimacy_signals):
+                            l_w = float(leg_dict.get("weight", 0.30))
+                            legitimacy_signals.append(
+                                LegitimacySignal(
+                                    code=code,
+                                    label=leg_dict.get("label", code),
+                                    weight=min(l_w, 0.80),
+                                    evidence=leg_dict.get("evidence", note),
+                                )
+                            )
             except (ImportError, AttributeError, KeyError, ValueError, TypeError):
                 pass
 
