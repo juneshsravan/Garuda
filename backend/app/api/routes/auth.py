@@ -89,7 +89,7 @@ def register(
         full_name=payload.full_name,
         role="user",
         is_active=True,
-        email_verified_at=datetime.now(timezone.utc) if not settings.EMAIL_VERIFICATION_REQUIRED else None,
+        email_verified_at=None,
     )
     db.add(user)
     db.commit()

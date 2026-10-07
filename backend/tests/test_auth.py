@@ -34,6 +34,7 @@ def test_register_success(client, db):
     assert data["user"]["full_name"] == "Priya Sharma"
     assert data["user"]["role"] == "user"
     assert data["user"]["is_active"] is True
+    assert data["user"]["email_verified_at"] is None
     assert "access_token" in data
     assert data["token_type"] == "bearer"
 
@@ -41,10 +42,12 @@ def test_register_success(client, db):
     assert "refresh_token" in response.cookies
     cookie_val = response.cookies["refresh_token"]
 
-    # Verify user saved in test DB with Argon2 hash
+    # Verify user saved in test DB with Argon2 hash and null email_verified_at
     user_db = db.execute(select(User).where(User.email == "priya.sharma@example.com")).scalar_one()
     assert user_db.password_hash.startswith("$argon2id$")
     assert user_db.password_hash != "Password123!"
+    assert user_db.is_active is True
+    assert user_db.email_verified_at is None
 
     # Verify session saved with hashed refresh token
     session_db = db.execute(select(UserSession).where(UserSession.user_id == user_db.id)).scalar_one()
@@ -347,3 +350,32 @@ def test_require_admin_dependency(client, db):
     resp_admin = client.get("/api/test-admin-only", headers={"Authorization": f"Bearer {admin_token}"})
     assert resp_admin.status_code == 200
     assert resp_admin.json()["message"] == "Admin authorized"
+
+
+def test_email_verification_setting_default_active_unverified(client, db):
+    """Rule: When EMAIL_VERIFICATION_REQUIRED=false, new accounts are active (is_active=true) but email_verified_at must stay null. Login succeeds."""
+    headers = {"X-Forwarded-For": "203.0.113.11"}
+    reg_resp = client.post(
+        "/api/auth/register",
+        json={"email": "unverified.user@example.com", "password": "Password123!", "full_name": "Unverified User"},
+        headers=headers,
+    )
+    assert reg_resp.status_code == 201
+    user_data = reg_resp.json()["user"]
+    assert user_data["is_active"] is True
+    assert user_data["email_verified_at"] is None
+
+    # Check database directly
+    user_db = db.execute(select(User).where(User.email == "unverified.user@example.com")).scalar_one()
+    assert user_db.is_active is True
+    assert user_db.email_verified_at is None
+
+    # Login succeeds even though email_verified_at is None
+    login_resp = client.post(
+        "/api/auth/login",
+        json={"email": "unverified.user@example.com", "password": "Password123!"},
+        headers=headers,
+    )
+    assert login_resp.status_code == 200
+    assert login_resp.json()["user"]["is_active"] is True
+    assert login_resp.json()["user"]["email_verified_at"] is None
