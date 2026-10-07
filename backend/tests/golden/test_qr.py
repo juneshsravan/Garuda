@@ -9,7 +9,7 @@ backend_dir = Path(__file__).resolve().parent.parent.parent
 if str(backend_dir) not in sys.path:
     sys.path.insert(0, str(backend_dir))
 
-from app.engine.analyzers.qr_analyzer import analyze_qr_image
+from app.engine.analyzers.qr_analyzer import analyze_qr_image, analyze_qr_payload
 from app.engine.extractors.qr import encode_qr_image, validate_qr_image
 
 GOLDEN_DIR = Path(__file__).resolve().parent
@@ -119,6 +119,77 @@ def test_qr_golden_dataset():
     assert overall_pct >= 90.0, f"Overall pass rate must be at least 90%! Achieved: {overall_pct:.1f}%"
 
 
+def test_surprise_upi_payloads():
+    """Evaluates the 5 surprise UPI payloads against expected risk bands."""
+    surprise_cases = [
+        {
+            "id": 1,
+            "payload": "upi://pay?pa=raju.tea@oksbi&pn=Raju%20Tea%20Stall",
+            "expected_label": "Likely Safe",
+            "expected_levels": ["likely_safe"],
+        },
+        {
+            "id": 2,
+            "payload": "upi://pay?pa=tsspdcl.bill.pay@ybl&pn=TSSPDCL%20Official&am=1250&tn=Pay%20now%20to%20avoid%20disconnection",
+            "expected_label": "High",
+            "expected_levels": ["high", "critical"],
+        },
+        {
+            "id": 3,
+            "payload": "upi://pay?pa=9000000006@paytm&pn=Amazon%20Prize%20Dept&am=10&tn=Scan%20to%20receive%20Rs%205000%20prize",
+            "expected_label": "High",
+            "expected_levels": ["high", "critical"],
+        },
+        {
+            "id": 4,
+            "payload": "upi://pay?pa=sbi.kyc.update@axl&pn=SBI%20KYC&tn=Enter%20UPI%20PIN%20to%20verify%20KYC",
+            "expected_label": "High",
+            "expected_levels": ["high", "critical"],
+        },
+        {
+            "id": 5,
+            "payload": "upi://pay?pa=swiggy@icici&pn=Swiggy&am=349",
+            "expected_label": "Likely Safe or Suspicious",
+            "expected_levels": ["likely_safe", "suspicious"],
+        },
+    ]
+
+    header_line = "=" * 135
+    print("\n" + header_line)
+    print("SURPRISE UPI PAYLOADS EVALUATION TABLE")
+    print(header_line)
+    print(
+        f"{'ID':<3} | {'Payload':<50} | {'Expected Level':<26} | {'Score':<5} | {'Actual Level':<14} | {'Status':<6} | {'Indicators / Legitimacy'}"
+    )
+    print(header_line)
+
+    for case in surprise_cases:
+        res = analyze_qr_payload(case["payload"])
+        score = res["risk"]["score"]
+        level = res["risk"]["level"]
+        passed = level in case["expected_levels"]
+
+        indicators = [i["code"] for i in res["indicators"]]
+        signals = [s["code"] for s in res["legitimacy_signals"]]
+        details = []
+        if indicators:
+            details.append(f"Threats: {','.join(indicators)}")
+        if signals:
+            details.append(f"Legit: {','.join(signals)}")
+        details_str = " | ".join(details) if details else "None"
+
+        status_str = "PASS" if passed else "FAIL"
+        disp_payload = case["payload"][:47] + "..." if len(case["payload"]) > 50 else case["payload"]
+
+        print(
+            f"{case['id']:<3} | {disp_payload:<50} | {case['expected_label']:<26} | {score:<5} | {level:<14} | {status_str:<6} | {details_str[:38]}"
+        )
+
+        assert passed, f"Surprise case {case['id']} failed: expected {case['expected_label']}, got {level} (score {score})"
+
+    print(header_line + "\n")
+
+
 def test_qr_validation_security():
     """Unit test for image format constraints, magic bytes, and size limits."""
     # Test 1: Empty payload
@@ -137,4 +208,6 @@ def test_qr_validation_security():
 if __name__ == "__main__":
     test_qr_golden_dataset()
     test_qr_validation_security()
-    print("[SUCCESS] All QR and UPI golden tests and security validations passed!")
+    test_surprise_upi_payloads()
+    print("[SUCCESS] All QR, security validations, and surprise UPI tests passed!")
+

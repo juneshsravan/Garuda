@@ -26,6 +26,8 @@ KNOWN_BRANDS_AND_AUTHORITIES = [
     "sbi", "state bank", "hdfc", "icici", "axis", "kotak", "pnb", "punjab national",
     "bank of baroda", "canara", "union bank", "income tax", "tax refund",
     "electricity", "power", "bescom", "mseb", "tneb", "uppcl", "dhbvn",
+    "tsspdcl", "tssnpdcl", "tgspdcl", "tgnpdcl", "bses", "wbsedcl", "cesc", "discom", "bijli", "vidyut",
+    "official", "govt", "government", "dept", "department", "board", "corporation", "authority",
     "phonepe", "paytm", "google pay", "gpay", "amazon", "flipkart", "netflix",
     "customs", "cbi", "police", "cyber crime", "trai", "courier", "cashback", "reward"
 ]

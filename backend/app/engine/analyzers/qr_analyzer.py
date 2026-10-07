@@ -35,9 +35,10 @@ SCAN_TO_RECEIVE_PATTERNS = [
 
 # High urgency phrasing in transaction notes
 URGENT_NOTE_PATTERNS = [
-    r"\b(?:immediately|urgent|urgently|today|now)\b",
+    r"\b(?:immediately|urgent|urgently|today|now|act\s+now)\b",
     r"\b(?:within\s+\d+\s+(?:hour|hr|min|minute)s?)\b",
     r"\b(?:account|power|electricity)\s+(?:will\s+be\s+)?(?:blocked|disconnected|suspended)\b",
+    r"\b(?:disconnection|disconnect|avoid\s+disconnection)\b",
     r"\b(?:penalty|fine|arrest|police|cbi)\b",
 ]
 
@@ -199,7 +200,7 @@ def analyze_qr_payload(payload: str) -> dict[str, Any]:
                     code="UPI_PREFILLED_AMOUNT_REWARD_TRAP",
                     label="Pre-filled debit amount on alleged reward, cashback, or refund QR code",
                     severity="high",
-                    weight=0.75,
+                    weight=0.55,
                     evidence=evidence_snippet,
                 )
             )
@@ -215,7 +216,7 @@ def analyze_qr_payload(payload: str) -> dict[str, Any]:
                     code="UPI_SCAN_TO_RECEIVE_FRAUD",
                     label="'Scan to receive' deception: receiving UPI funds never requires scanning a QR code or entering a PIN",
                     severity="high",
-                    weight=0.80,
+                    weight=0.60,
                     evidence=evidence_phrase,
                 )
             )
@@ -228,7 +229,7 @@ def analyze_qr_payload(payload: str) -> dict[str, Any]:
                     code="UPI_IMPERSONATION_PERSONAL_HANDLE",
                     label=f"Payee name claims official entity ('{claimed_brand.title()}') but routes to individual retail UPI handle",
                     severity="high",
-                    weight=0.65,
+                    weight=0.50,
                     evidence=f"Payee: '{payee_name}' | VPA: '{vpa}'",
                 )
             )
@@ -241,7 +242,7 @@ def analyze_qr_payload(payload: str) -> dict[str, Any]:
                     code="UPI_URGENT_NOTE_PRESSURE",
                     label="High urgency or intimidation language in payment description",
                     severity="high",
-                    weight=0.50,
+                    weight=0.45,
                     evidence=f"Note: '{note}'",
                 )
             )
@@ -260,7 +261,7 @@ def analyze_qr_payload(payload: str) -> dict[str, Any]:
                                 code=code,
                                 label=f"Note content indicator: {ind_dict.get('label', '')}",
                                 severity=ind_dict.get("severity", "medium"),
-                                weight=ind_dict.get("weight", 0.40),
+                                weight=min(ind_dict.get("weight", 0.40), 0.50),
                                 evidence=ind_dict.get("evidence", note),
                             )
                         )
@@ -355,7 +356,10 @@ def analyze_qr_payload(payload: str) -> dict[str, Any]:
         is_unusable=False,
     )
 
-    risk_score = score_data["score"]
+    # Heuristic scoring rule (ARCHITECTURE 8.5): Heuristics alone must never reach 100.
+    # Scores are strictly capped at 99 in the absence of verified threat intel hits.
+    raw_computed_score = score_data["score"]
+    risk_score = min(raw_computed_score, 99) if raw_computed_score >= 100 else raw_computed_score
     risk_level = score_data["level"]
     risk_label = score_data["label"]
 
