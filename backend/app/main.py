@@ -3,6 +3,9 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from slowapi.errors import RateLimitExceeded
+
+from app.api.routes.auth import router as auth_router
 from app.api.routes.health import router as health_router
 from app.core.config import settings
 from app.core.errors import (
@@ -12,6 +15,7 @@ from app.core.errors import (
     http_exception_handler,
     validation_exception_handler,
 )
+from app.core.rate_limit import limiter, rate_limit_exceeded_handler
 
 app = FastAPI(
     title="GARUDA API",
@@ -21,6 +25,10 @@ app = FastAPI(
     redoc_url="/redoc",
     openapi_url="/openapi.json",
 )
+
+# Attach in-memory SlowAPI rate limiter
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
 
 # CORS Middleware (Source of Truth: ARCHITECTURE Section 9 and 10)
 app.add_middleware(
@@ -39,6 +47,7 @@ app.add_exception_handler(Exception, generic_exception_handler)
 
 # Include API Routers
 app.include_router(health_router, prefix="/api")
+app.include_router(auth_router, prefix="/api")
 
 
 @app.get("/", include_in_schema=False)
