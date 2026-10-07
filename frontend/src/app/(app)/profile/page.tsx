@@ -181,10 +181,10 @@ export default function ProfilePage() {
             <Card className="p-5 space-y-3">
               <h4 className="font-bold text-white uppercase text-xs flex items-center gap-2">
                 <Database className="w-4 h-4 text-primary" />
-                Data Retention &amp; Supabase RLS
+                Data Retention &amp; Privacy
               </h4>
               <p className="text-muted-foreground leading-relaxed">
-                Your threat records are bounded by Row-Level Security in Supabase (Mumbai). No other user or API client can read your telemetry.
+                Your threat records are encrypted at rest and access-controlled. No other user or API client can read your telemetry.
               </p>
               <div className="pt-2">
                 <Link

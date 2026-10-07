@@ -40,8 +40,9 @@ const MOCK_RECENT_SCANS = [
     id: "scan_02",
     type: "QR / UPI",
     preview: "Fake KBC lottery ₹500 cashback claim QR...",
-    level: "critical" as const,
-    label: "94 Critical Risk",
+    // MOCK: High (65-100) per ARCHITECTURE §8.5; Critical requires a blocklist/threat-intel match
+    level: "high" as const,
+    label: "79 High Risk",
     time: "2 hours ago",
   },
   {
@@ -123,7 +124,7 @@ export default function DashboardPage() {
       {viewState === "loading" && (
         <LoadingState
           message="Querying telemetry..."
-          description="Fetching personal scan distribution from Supabase PostgreSQL."
+          description="Fetching personal scan distribution from the analysis service."
         />
       )}
 

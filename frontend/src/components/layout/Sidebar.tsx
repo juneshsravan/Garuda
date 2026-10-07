@@ -90,17 +90,17 @@ export function Sidebar({ mobileOpen = false, onCloseMobile }: SidebarProps) {
         })}
       </nav>
 
-      {/* Footer System Status */}
+      {/* Footer System Status - MOCK: Placeholder for GET /api/health status check */}
       <div className="p-4 border-t border-border bg-background/50 space-y-2">
         <div className="flex items-center justify-between text-[11px] font-mono text-muted-foreground">
           <span className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            Engine Online
+            Threat Engine: Active
           </span>
           <span className="text-slate-400">v2.0</span>
         </div>
         <div className="text-[10px] font-mono text-slate-500">
-          Supabase RLS Protected
+          Encrypted at rest · Access controlled
         </div>
       </div>
     </div>

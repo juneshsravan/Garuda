@@ -61,7 +61,7 @@ export function ReportingSection() {
                   1. Submitted
                 </div>
                 <div className="p-2 rounded bg-elevated border border-border text-slate-400">
-                  2. Under Review
+                  2. Received
                 </div>
                 <div className="p-2 rounded bg-elevated border border-border text-slate-400">
                   3. Packaged

@@ -30,8 +30,9 @@ const MOCK_REPORTS = [
     reference_code: "GAR-2026-000002",
     title: "Fake ₹25 Lakh KBC Lottery Prize Advance Tax Fee",
     category: "Financial Fraud",
-    status: "under_review",
-    status_label: "Under Review",
+    status: "submitted",
+    // MOCK: Status remains "Submitted to GARUDA" until an admin review feature is built
+    status_label: "Submitted to GARUDA",
     incident_date: "2026-10-04",
   },
 ];
@@ -53,7 +54,7 @@ export default function ReportsPage() {
             Incident Report Center
           </h2>
           <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-            Package verified scan evidence into official GAR-2026-XXXXXX dossiers.
+            Package scan evidence into structured GAR-2026-XXXXXX incident dossiers.
           </p>
         </div>
 
@@ -119,7 +120,7 @@ export default function ReportsPage() {
       {state === "loading" && (
         <LoadingState
           message="Loading Incident Dossiers..."
-          description="Retrieving verified incident reports and status history from Supabase."
+          description="Retrieving GARUDA incident reports from the reporting service."
         />
       )}
 
@@ -175,7 +176,7 @@ export default function ReportsPage() {
                 </div>
 
                 <div className="pt-3 border-t border-border/80 flex items-center justify-between text-xs font-mono">
-                  <span className="text-muted-foreground">Status: Active Review</span>
+                  <span className="text-muted-foreground">Status: Submitted to GARUDA</span>
                   <span className="text-primary hover:text-accent-cyan cursor-pointer inline-flex items-center gap-1 font-semibold">
                     View Dossier
                     <ArrowRight className="w-3 h-3" />

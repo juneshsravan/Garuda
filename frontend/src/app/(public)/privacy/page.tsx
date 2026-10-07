@@ -56,7 +56,7 @@ export default function PrivacyPage() {
               3. Data Ownership &amp; Audit Logs
             </h2>
             <p>
-              All scans recorded in your account are isolated via Supabase Row-Level Security (RLS). You retain full authority to delete any historical scan record. You can also analyze threats in ephemeral mode with the &ldquo;Don&apos;t save this scan&rdquo; toggle.
+              All scans recorded in your account are isolated via access controls and row-level isolation. You retain full authority to delete any historical scan record. You can also analyze threats in ephemeral mode with the &ldquo;Don&apos;t save this scan&rdquo; toggle.
             </p>
           </section>
 

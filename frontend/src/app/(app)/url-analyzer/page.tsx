@@ -150,7 +150,7 @@ export default function UrlAnalyzerPage() {
         {/* Samples */}
         <div className="pt-3 border-t border-border/60">
           <span className="text-[11px] font-mono text-muted-foreground block mb-2">
-            Test Vectors (Friend B Blocklists &amp; Golden Set):
+            Try an example:
           </span>
           <div className="flex flex-wrap gap-2">
             <button

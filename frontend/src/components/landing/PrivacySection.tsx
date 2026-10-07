@@ -15,7 +15,7 @@ const safeguards = [
   {
     icon: Database,
     title: "Row-Level Security (RLS)",
-    desc: "All database tables in Supabase enforce strict RLS without public API exposure. Every query verifies tenant identity with zero risk of cross-user IDOR.",
+    desc: "All database tables enforce strict row-level access control without public API exposure. Every query verifies tenant identity with zero risk of cross-user IDOR.",
   },
   {
     icon: KeyRound,

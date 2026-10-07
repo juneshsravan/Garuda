@@ -73,7 +73,7 @@ export function HistorySection() {
 
               {/* Ledger Controls */}
               <div className="pt-2 flex items-center justify-between text-xs text-muted-foreground font-mono">
-                <span className="text-[11px]">Protected by Supabase Row-Level Security</span>
+                <span className="text-[11px]">Encrypted at rest · Access controlled</span>
                 <span className="text-accent-cyan cursor-pointer hover:underline">
                   Export CSV / JSON Dossier
                 </span>

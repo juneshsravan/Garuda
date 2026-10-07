@@ -20,7 +20,7 @@ const MOCK_INITIAL_USER: User = {
   full_name: "Defense Analyst",
   role: "user",
   is_active: true,
-  email_verified_at: "2026-10-07T12:00:00Z",
+  email_verified_at: null,
   created_at: "2026-10-01T00:00:00Z",
 };
 

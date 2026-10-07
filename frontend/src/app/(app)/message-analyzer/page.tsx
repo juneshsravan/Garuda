@@ -151,10 +151,10 @@ export default function MessageAnalyzerPage() {
           </div>
         </div>
 
-        {/* Golden Sample Quick Links for pair review */}
+        {/* Quick sample links */}
         <div className="pt-3 border-t border-border/60">
           <span className="text-[11px] font-mono text-muted-foreground block mb-2">
-            Try Golden Evaluation Messages (ARCHITECTURE §8 Golden Set):
+            Try an example:
           </span>
           <div className="flex flex-wrap gap-2">
             <button

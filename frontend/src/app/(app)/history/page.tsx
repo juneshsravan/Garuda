@@ -22,10 +22,11 @@ const INITIAL_MOCK_SCANS = [
   {
     id: "scan_102",
     scan_type: "qr",
+    // MOCK: High (65-100) per ARCHITECTURE §8.5; Critical requires a blocklist/threat-intel match
     preview: "Fake KBC ₹25 lakh lucky draw UPI QR with prefilled processing GST fee...",
-    risk_level: "critical" as const,
-    risk_score: 96,
-    risk_label: "96 Critical Risk",
+    risk_level: "high" as const,
+    risk_score: 78,
+    risk_label: "78 High Risk",
     category: "Lottery Advance Fee Scam",
     created_at: "Today, 11:30",
   },
@@ -130,7 +131,7 @@ export default function HistoryPage() {
       {state === "loading" && (
         <LoadingState
           message="Loading Threat Records..."
-          description="Querying user-scoped scans via Supabase PostgreSQL session pooler."
+          description="Querying your scan history from the analysis service."
         />
       )}
 
