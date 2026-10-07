@@ -51,6 +51,7 @@ def test_lexicon_parity():
             counts = {lang: len(lang_dict[lang]) for lang in SUPPORTED_LANGUAGES}
             print(f"  - {concept_name:<24}: {counts}")
         print("=" * 80)
+        return True
 
 
 if __name__ == "__main__":

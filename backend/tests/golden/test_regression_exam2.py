@@ -9,8 +9,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from app.engine.orchestrator import DetectionEngine
 
 
-def test_holdout_dataset():
-    yaml_path = Path(__file__).resolve().parent / "holdout.yaml"
+def test_regression_exam2_dataset():
+    yaml_path = Path(__file__).resolve().parent / "regression_exam2.yaml"
     with open(yaml_path, "r", encoding="utf-8") as f:
         data = yaml.safe_load(f)
 
@@ -36,7 +36,6 @@ def test_holdout_dataset():
         score = risk["score"]
         actual_level = risk["level"]
 
-        # Check pass/fail
         if isinstance(expected, list):
             is_pass = actual_level in expected
             exp_str = "/".join(expected)
@@ -50,7 +49,6 @@ def test_holdout_dataset():
         else:
             status = "FAIL"
 
-        # Format detected signals
         threat_codes = [ind["code"] for ind in analysis["indicators"]]
         legit_codes = [sig["code"] for sig in analysis["legitimacy_signals"]]
         
@@ -79,9 +77,13 @@ def test_holdout_dataset():
     safe_passed = sum(1 for r in safe_cases if r["status"] == "PASS")
     safe_pct = (safe_passed / len(safe_cases)) * 100 if safe_cases else 0
 
-    print(f"Holdout Total: {passed}/{total} passed ({pct:.1f}%) | GENUINE: {safe_passed}/{len(safe_cases)} passed ({safe_pct:.1f}%)\n")
+    scam_cases = [r for r in results if r["type"] == "scam"]
+    scam_passed = sum(1 for r in scam_cases if r["status"] == "PASS")
+    scam_pct = (scam_passed / len(scam_cases)) * 100 if scam_cases else 0
+
+    print(f"Regression Exam 2: {passed}/{total} passed ({pct:.1f}%) | GENUINE: {safe_passed}/{len(safe_cases)} passed ({safe_pct:.1f}%) | SCAMS: {scam_passed}/{len(scam_cases)} passed ({scam_pct:.1f}%)\n")
     return passed == total
 
 
 if __name__ == "__main__":
-    test_holdout_dataset()
+    test_regression_exam2_dataset()

@@ -1,0 +1,76 @@
+version: "1.0"
+dataset: "regression_exam2"
+description: "14 messages from final exam 2 regression test set"
+
+cases:
+  # --- GENUINE ---
+  - id: 1
+    type: "safe"
+    expected_level: ["likely_safe", "suspicious"]
+    text: "कल बैंक की छुट्टी है, शाखा बंद रहेगी।"
+
+  - id: 2
+    type: "safe"
+    expected_level: ["likely_safe", "suspicious"]
+    text: "Your Amazon refund of Rs 499 has been processed to your original payment method."
+
+  - id: 3
+    type: "safe"
+    expected_level: ["likely_safe", "suspicious"]
+    text: "Your gas cylinder booking is confirmed. Delivery expected in 2 days. -Indane"
+
+  - id: 4
+    type: "safe"
+    expected_level: ["likely_safe", "suspicious"]
+    text: "రేపు ఉదయం 10 గంటలకు పరీక్ష ఉంది. సమయానికి రండి."
+
+  - id: 5
+    type: "safe"
+    expected_level: ["likely_safe", "suspicious"]
+    text: "Amma, nenu inti ki late ga vastanu, dinner wait cheyyakandi"
+
+  - id: 6
+    type: "safe"
+    expected_level: ["likely_safe", "suspicious"]
+    text: "Bhai kal cricket match hai, 6 baje ground pe aa jana"
+
+  - id: 7
+    type: "safe"
+    expected_level: ["likely_safe", "suspicious"]
+    text: "Your SIM card has been successfully activated. Welcome to Airtel."
+
+  # --- SCAMS ---
+  - id: 8
+    type: "scam"
+    expected_level: ["high", "critical"]
+    text: "Hello sir, calling from Flipkart. You won an iPhone 15 in our lucky draw. Pay Rs 1,999 delivery charges to receive it."
+
+  - id: 9
+    type: "scam"
+    expected_level: ["high", "critical"]
+    text: "Your PAN card will be deactivated today. Update immediately at http://pan-update.co"
+
+  - id: 10
+    type: "scam"
+    expected_level: ["medium", "high", "critical"]
+    text: "Meeku loan approve ayyindi, processing charges 2000 pampandi"
+
+  - id: 11
+    type: "scam"
+    expected_level: ["high", "critical"]
+    text: "Aapke account me 10000 bonus credit hoga, bas ye link open karke OTP daalo"
+
+  - id: 12
+    type: "scam"
+    expected_level: ["high", "critical"]
+    text: "మీ కరెంట్ బిల్లు పెండింగ్ ఉంది, ఈ రాత్రి కనెక్షన్ కట్ చేస్తాం, వెంటనే కాల్ చేయండి 9000000005"
+
+  - id: 13
+    type: "scam"
+    expected_level: ["high", "critical"]
+    text: "We are hiring! Work from home, earn 25000 per week. Registration charges Rs 750 only."
+
+  - id: 14
+    type: "scam"
+    expected_level: ["medium", "high", "critical"]
+    text: "Double your money in 30 days with our crypto plan. Minimum 5000. 100% guaranteed returns."

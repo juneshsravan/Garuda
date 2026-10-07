@@ -75,28 +75,43 @@ PROTECTIVE_ADVICE_PATTERNS = [
 
 
 AMOUNT_REGEX = re.compile(
-    r"(?:[₹$€£]|rs\.?|inr)\s*[\d,]+(?:\.\d+)?|\b\d+\s*(?:lakh|crore|thousand|bonus)\b",
+    r"(?:[₹$€£]|rs\.?|inr)\s*[\d,]+(?:\.\d+)?|\b\d+\s*(?:lakh|crore|thousand|bonus)\b|"
+    r"\b(?:charges|charge|fee|fees|bonus|credit|refund|loan|pay|send|bhejo|pampandi|kattandi|daalo|deposit|earning|earn|cashback|prize|reward|minimum)\s+(?:of\s+)?(\d{3,}(?:,\d{3})*)\b|"
+    r"\b(\d{3,}(?:,\d{3})*)\s+(?:charges|charge|fee|fees|bonus|credit|refund|loan|bhejo|pampandi|kattandi|deposit|cashback|per\s+week|per\s+day|daily)\b|"
+    r"(?:ఫీజు|ఛార్జీలు|బోనస్|క్రెడిట్|రిఫండ్|లోన్|పంపండి|కట్టండి|డిపాజిట్)\s*(\d{3,}(?:,\d{3})*)|"
+    r"(\d{3,}(?:,\d{3})*)\s*(?:ఫీజు|ఛార్జీలు|బోనస్|క్రెడిట్|రిఫండ్|లోన్|పంపండి|కట్టండి|డిపాజిట్)|"
+    r"(?:फीस|चार्ज|शुल्क|बोनस|क्रेडिट|रिफंड|लोन|भेजें|भेजो|जमा|डिपॉजिट)\s*(\d{3,}(?:,\d{3})*)|"
+    r"(\d{3,}(?:,\d{3})*)\s*(?:फीस|चार्ज|शुल्क|बोनस|क्रेडिट|रिफंड|लोन|भेजें|भेजो|जमा|डिपॉजिट)",
     re.IGNORECASE
 )
 
 FEE_DEMAND_PATTERNS = [
-    r"\b(?:pay|deposit|send|bharo|kattandi|transfer)\s+.*?(?:fee|charges|processing|gst|tax|registration|deposit|redelivery|release)\b",
-    r"\b(?:fee|charges|tax|gst)\s+(?:bharo|kattandi|do|pay|bhar)\b",
-    r"\b(?:joining|registration|processing|security|activation|membership)\s+fee\s+(?:of\s+)?(?:rs\.?|inr|[₹$])?\s*[\d,]+\b",
-    r"\b(?:rs\.?|inr|[₹$])?\s*[\d,]+\s+(?:joining|registration|processing|security|activation)\s+fee\b",
-    r"\bfee\s+(?:of\s+)?[₹$]?[\d,]+\b",
+    r"\b(?:pay|deposit|send|bharo|kattandi|pampu|pampandi|pampinchandi|transfer|jama\s+karo)\s+.*?(?:fee|fees|charges|charge|amount|deposit|processing|gst|tax|registration|redelivery|release)\b",
+    r"\b(?:fee|fees|charges|charge|tax|gst|deposit|amount|payment)\s+(?:bharo|kattandi|pampandi|do|pay|bhar|jama\s+karo|kattu|pampu)\b",
+    r"\b(?:joining|registration|processing|security|activation|membership|delivery)\s+(?:fee|fees|charges|charge|amount|deposit|payment)\s+(?:of\s+)?(?:rs\.?|inr|[₹$])?\s*[\d,]+\b",
+    r"\b(?:rs\.?|inr|[₹$])?\s*[\d,]+\s+(?:joining|registration|processing|security|activation|delivery)\s+(?:fee|fees|charges|charge|amount|deposit|payment)\b",
+    r"\b(?:joining|registration|processing|security|activation|delivery)\s+(?:fee|fees|charges|charge|amount|deposit|payment)\s+[\d,]+\b",
+    r"\b(?:fee|fees|charges|charge|deposit|amount|payment)\s+(?:of\s+)?[₹$]?[\d,]+\b",
     r"\bto\s+unlock\s+vip\s+tasks\s+deposit\b",
-    r"\bprocessing\s+fee\b",
-    r"ప్రాసెసింగ్\s+ఫీజు",
-    r"ఫీజు.*?చెల్లించండి",
-    r"ఫీజు.*?కట్టండి",
+    r"\b(?:processing|registration|delivery)\s+(?:fee|fees|charges|charge|amount|deposit|payment)\b",
+    r"(?:ప్రాసెసింగ్|రిజిస్ట్రేషన్|డెలివరీ)\s+(?:ఫీజు|ఛార్జీలు|రుసుము|మొత్తం|డిపాజిట్|చెల్లింపు)",
+    r"(?:ఫీజు|ఛార్జీలు|రుసుము|మొత్తం|డిపాజిట్)\s*.*?(?:చెల్లించండి|కట్టండి|పంపండి|చేయండి)",
+    r"(?:ఫీజు|ఛార్జీలు|రుసుము|డిపాజిట్)\s*[\d,]+",
+    r"(?:प्रोसेसिंग|रजिस्ट्रेशन|डिलीवरी)\s+(?:फीस|चार्ज|शुल्क|रकम|डिपॉजिट|भुगतान)",
+    r"(?:फीस|चार्ज|शुल्क|रकम|डिपॉजिट)\s*.*?(?:भरो|जमा\s+करें|भेजें|दीजिए|पे\s+करें)",
+    r"(?:फीस|चार्ज|शुल्क|डिपॉजिट)\s*[\d,]+",
 ]
 
 CREDENTIAL_REQUEST_PATTERNS = [
-    r"\b(?:share|send|tell|enter|cheppandi|bhejo|saajha|batao|provide|submit|re-?enter)\s+.*?(?:otp|pin|password|cvv|card\s+details|bank\s+details|aadhaar|pan)\b",
+    r"\b(?:share|send|tell|enter|cheppandi|bhejo|saajha|batao|provide|submit|re-?enter|daalo|dalo|enter\s+karo|ivvandi|type\s+karo)\s+.*?(?:otp|pin|password|cvv|card\s+details|bank\s+details|aadhaar|pan)\b",
+    r"\botp\s+(?:daalo|dalo|enter\s+karo|batao|bhejo|ivvandi|cheppandi|enter\s+cheyandi|type\s+karo)\b",
+    r"\b(?:daalo|dalo|enter\s+karo|ivvandi|type\s+karo)\s+otp\b",
     r"\bsh[a@]re\s+y[o0]ur\s+[o0]tp\b",
     r"\bmee\s+upi\s+pin\s+enter\s+cheyandi\b",
     r"\bअपना\s+otp\s+साझा\s+करें\b",
+    r"अपना\s+otp\s+(?:साझा\s+करें|डालो|दर्ज\s+करें|बताओ|भेजें)",
+    r"otp\s+(?:डालो|दर्ज\s+करें|बताओ)",
+    r"మీ\s+(?:otp|పిన్)\s+(?:చెప్పండి|నమోదు\s+చేయండి|ఇవ్వండి|టైప్\s+చేయండి)",
     r"\bమీ\s+otp\s+చెప్పండి\b",
     r"\bapprove\s+(?:the\s+)?request\s+on\s+your\s+upi\s+app\b",
     r"\benter\s+(?:your\s+)?pin\s+to\s+receive\b",
@@ -110,17 +125,24 @@ CREDENTIAL_REQUEST_PATTERNS = [
 CONTACT_CTA_PATTERNS = [
     r"\b(?:call|calling|whatsapp|contact)\s+(?:our\s+officer\s+|officer\s+|hr\s+|us\s+at\s+)?(?:\+?91[\s-]?)?[6-9]\d{9}\b",
     r"\bcontact\s+(?:hr\s+)?(?:on\s+)?(?:telegram|whatsapp|phone)\s+@?[a-z0-9_]+\b",
+    r"\b(?:ye|is|ee|this)\s+link\s+(?:open\s+karke|open\s+karo|pe\s+click\s+karo|par\s+click\s+karein|open\s+cheyandi|open\s+chesi|lo\s+update\s+cheyyandi|click\s+chesi)\b",
+    r"\blink\s+(?:open\s+karke|open\s+karo|pe\s+click|par\s+click|open\s+cheyandi|open\s+chesi)\b",
     r"\b(?:click|open|visit)\s+(?:this\s+|here\s+|the\s+)?(?:link|url)\b",
     r"\bscan\s+(?:this\s+)?qr\b",
     r"\bredeem\s+now\b",
     r"\bcomplete\s+kyc\s+by\s+calling\b",
     r"\bcall\s+our\s+officer\b",
     r"\bturant\s+is\s+number\s+pe\s+call\b",
+    r"(?:इस\s+)?(?:लिंक|link)\s*(?:पर|pe)?\s*(?:क्लिक\s*करें|क्लिक\s*करो|क्लिक|खोलें|ओपन)",
+    r"(?:ఈ\s+)?(?:లింక్|link)\s*(?:పై|లో)?\s*(?:క్లిక్\s*చేయండి|క్లిక్|ఓపెన్\s*చేయండి|ఓపెన్)",
     r"इस\s+नंबर\s+पर\s+कॉल",
     r"नंबर\s+पर\s+कॉल\s+करें",
     r"\bee\s+link\s+(?:lo|click)\b",
-    r"लिंक\s+पर\s+क्लिक",
+    r"లింక్\s+ఓపెన్",
     r"లింక్\s+క్లిక్",
+    r"వెంటనే\s+కాల్\s+చేయండి",
+    r"కాల్\s+చేయండి\s*[6-9]\d{9}",
+    r"కాల్\s+చేయండి",
 ]
 
 EARNING_CLAIM_PATTERNS = [
@@ -252,8 +274,8 @@ def analyze_concept_combinations(search_text: str, original_text: str) -> List[I
             )
         )
 
-    # C. ADVANCE_FEE = FEE_DEMAND + (REWARD or THREAT or AUTHORITY or INVESTMENT_JOB or AMOUNT)
-    if fee_match and (reward_match or threat_match or auth_match or inv_match or earning_match or amount_match or task_match):
+    # C. ADVANCE_FEE = FEE_DEMAND + (REWARD or THREAT or AUTHORITY or INVESTMENT_JOB or AMOUNT or ASSET)
+    if fee_match and (reward_match or threat_match or auth_match or inv_match or earning_match or amount_match or task_match or asset_match):
         has_scam_context = True
         ev_fee = extract_evidence_snippet(original_text, fee_match[1], fee_match[2])
         indicators.append(

@@ -84,6 +84,7 @@ def test_golden_dataset():
     assert safe_passed == safe_total, f"All SAFE cases must pass! Passed {safe_passed}/{safe_total}"
     # 2. Overall pass rate >= 90%
     assert overall_pct >= 90.0, f"Overall pass rate must be at least 90%! Achieved: {overall_pct:.1f}%"
+    return total_passed == len(cases)
 
 
 if __name__ == "__main__":

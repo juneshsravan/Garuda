@@ -68,6 +68,8 @@ LEGITIMACY_RULES = [
             r"\breceipt\s+no\s+\d+\b",
             r"\bmaintain\s+sufficient\s+balance\b",
             r"\bwas\s+used\s+for\s+(?:rs\.?|[₹$])?[\d,]+\b",
+            r"\brefund\s+of\s+.*has\s+been\s+processed\b",
+            r"\bprocessed\s+to\s+your\s+original\s+payment\s+method\b",
         ],
     },
     {
