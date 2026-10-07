@@ -78,7 +78,7 @@ export function ExplainableRiskSection() {
               </p>
             </div>
             <Badge variant="outline" className="self-start sm:self-auto font-mono text-xs">
-              ARCHITECTURE §7
+              Score Bands
             </Badge>
           </div>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { showDevTools } from "@/lib/dev-tools";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -55,40 +56,42 @@ export default function UrlAnalyzerPage() {
           </p>
         </div>
 
-        {/* State Switcher */}
-        <div className="flex items-center gap-1.5 p-1 rounded-lg border border-border bg-elevated/40 text-[11px] font-mono self-start sm:self-auto">
-          <span className="text-muted-foreground px-2">State:</span>
-          <button
-            onClick={() => setState("ready")}
-            className={`px-2 py-0.5 rounded ${state === "ready" ? "bg-primary text-white" : "text-slate-400"}`}
-          >
-            Ready
-          </button>
-          <button
-            onClick={() => setState("analyzing")}
-            className={`px-2 py-0.5 rounded ${state === "analyzing" ? "bg-primary text-white" : "text-slate-400"}`}
-          >
-            Loading
-          </button>
-          <button
-            onClick={() => setState("result")}
-            className={`px-2 py-0.5 rounded ${state === "result" ? "bg-primary text-white" : "text-slate-400"}`}
-          >
-            Result
-          </button>
-          <button
-            onClick={() => setState("empty")}
-            className={`px-2 py-0.5 rounded ${state === "empty" ? "bg-primary text-white" : "text-slate-400"}`}
-          >
-            Empty
-          </button>
-          <button
-            onClick={() => setState("error")}
-            className={`px-2 py-0.5 rounded ${state === "error" ? "bg-primary text-white" : "text-slate-400"}`}
-          >
-            Error
-          </button>
-        </div>
+        {/* State Switcher — only visible when NEXT_PUBLIC_SHOW_DEV_TOOLS=true */}
+        {showDevTools && (
+          <div className="flex items-center gap-1.5 p-1 rounded-lg border border-border bg-elevated/40 text-[11px] font-mono self-start sm:self-auto">
+            <span className="text-muted-foreground px-2">State:</span>
+            <button
+              onClick={() => setState("ready")}
+              className={`px-2 py-0.5 rounded ${state === "ready" ? "bg-primary text-white" : "text-slate-400"}`}
+            >
+              Ready
+            </button>
+            <button
+              onClick={() => setState("analyzing")}
+              className={`px-2 py-0.5 rounded ${state === "analyzing" ? "bg-primary text-white" : "text-slate-400"}`}
+            >
+              Loading
+            </button>
+            <button
+              onClick={() => setState("result")}
+              className={`px-2 py-0.5 rounded ${state === "result" ? "bg-primary text-white" : "text-slate-400"}`}
+            >
+              Result
+            </button>
+            <button
+              onClick={() => setState("empty")}
+              className={`px-2 py-0.5 rounded ${state === "empty" ? "bg-primary text-white" : "text-slate-400"}`}
+            >
+              Empty
+            </button>
+            <button
+              onClick={() => setState("error")}
+              className={`px-2 py-0.5 rounded ${state === "error" ? "bg-primary text-white" : "text-slate-400"}`}
+            >
+              Error
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Zero Fetch Notice */}
@@ -169,7 +172,7 @@ export default function UrlAnalyzerPage() {
               onClick={() => handleSample("https://sbi.co.in/web/personal-banking")}
               className="text-[11px] font-mono px-2 py-1 rounded bg-elevated hover:bg-slate-800 text-slate-300 hover:text-white border border-border"
             >
-              [Official] sbi.co.in
+              [Likely Safe] sbi.co.in
             </button>
           </div>
         </div>

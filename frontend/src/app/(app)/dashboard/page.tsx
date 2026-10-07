@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { showDevTools } from "@/lib/dev-tools";
 import Link from "next/link";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -82,42 +83,44 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        {/* State Toggle for UI Testing */}
-        <div className="flex items-center gap-1.5 p-1 rounded-lg border border-border bg-elevated/40 text-[11px] font-mono self-start sm:self-auto">
-          <span className="text-muted-foreground px-2">Preview State:</span>
-          <button
-            onClick={() => setViewState("normal")}
-            className={`px-2.5 py-1 rounded transition-colors ${
-              viewState === "normal" ? "bg-primary text-white" : "text-slate-400 hover:text-white"
-            }`}
-          >
-            Normal
-          </button>
-          <button
-            onClick={() => setViewState("loading")}
-            className={`px-2.5 py-1 rounded transition-colors ${
-              viewState === "loading" ? "bg-primary text-white" : "text-slate-400 hover:text-white"
-            }`}
-          >
-            Loading
-          </button>
-          <button
-            onClick={() => setViewState("empty")}
-            className={`px-2.5 py-1 rounded transition-colors ${
-              viewState === "empty" ? "bg-primary text-white" : "text-slate-400 hover:text-white"
-            }`}
-          >
-            Empty
-          </button>
-          <button
-            onClick={() => setViewState("error")}
-            className={`px-2.5 py-1 rounded transition-colors ${
-              viewState === "error" ? "bg-primary text-white" : "text-slate-400 hover:text-white"
-            }`}
-          >
-            Error
-          </button>
-        </div>
+        {/* State Toggle for UI Testing — only visible when NEXT_PUBLIC_SHOW_DEV_TOOLS=true */}
+        {showDevTools && (
+          <div className="flex items-center gap-1.5 p-1 rounded-lg border border-border bg-elevated/40 text-[11px] font-mono self-start sm:self-auto">
+            <span className="text-muted-foreground px-2">Preview State:</span>
+            <button
+              onClick={() => setViewState("normal")}
+              className={`px-2.5 py-1 rounded transition-colors ${
+                viewState === "normal" ? "bg-primary text-white" : "text-slate-400 hover:text-white"
+              }`}
+            >
+              Normal
+            </button>
+            <button
+              onClick={() => setViewState("loading")}
+              className={`px-2.5 py-1 rounded transition-colors ${
+                viewState === "loading" ? "bg-primary text-white" : "text-slate-400 hover:text-white"
+              }`}
+            >
+              Loading
+            </button>
+            <button
+              onClick={() => setViewState("empty")}
+              className={`px-2.5 py-1 rounded transition-colors ${
+                viewState === "empty" ? "bg-primary text-white" : "text-slate-400 hover:text-white"
+              }`}
+            >
+              Empty
+            </button>
+            <button
+              onClick={() => setViewState("error")}
+              className={`px-2.5 py-1 rounded transition-colors ${
+                viewState === "error" ? "bg-primary text-white" : "text-slate-400 hover:text-white"
+              }`}
+            >
+              Error
+            </button>
+          </div>
+        )}
       </div>
 
       {/* State Renderers */}
