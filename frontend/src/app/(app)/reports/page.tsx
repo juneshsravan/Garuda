@@ -6,6 +6,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LoadingState, EmptyState, ErrorState } from "@/components/ui/states";
+import Link from "next/link";
 import {
   FileCheck2,
   ExternalLink,
@@ -151,9 +152,11 @@ export default function ReportsPage() {
             <h3 className="font-mono text-sm font-bold text-white uppercase tracking-wider">
               Your Incident Dossiers
             </h3>
-            <Button size="sm" className="gap-1.5 font-mono text-xs">
-              <PlusCircle className="w-3.5 h-3.5" />
-              New Report
+            <Button asChild size="sm" className="gap-1.5 font-mono text-xs">
+              <Link href="/reports/new">
+                <PlusCircle className="w-3.5 h-3.5" />
+                New Report
+              </Link>
             </Button>
           </div>
 
@@ -180,10 +183,13 @@ export default function ReportsPage() {
 
                 <div className="pt-3 border-t border-border/80 flex items-center justify-between text-xs font-mono">
                   <span className="text-muted-foreground">Status: Submitted to GARUDA</span>
-                  <span className="text-primary hover:text-accent-cyan cursor-pointer inline-flex items-center gap-1 font-semibold">
+                  <Link
+                    href={`/reports/${rep.id}`}
+                    className="text-primary hover:text-accent-cyan inline-flex items-center gap-1 font-semibold"
+                  >
                     View Dossier
                     <ArrowRight className="w-3 h-3" />
-                  </span>
+                  </Link>
                 </div>
               </Card>
             ))}

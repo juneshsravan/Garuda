@@ -59,7 +59,7 @@ const MOCK_RECENT_SCANS = [
     type: "MESSAGE",
     preview: "Your OTP for Rs 1,450.00 at AMAZON INDIA...",
     level: "safe" as const,
-    label: "08 Likely Safe",
+    label: "8 Likely Safe",
     time: "2 days ago",
   },
 ];
@@ -307,16 +307,17 @@ export default function DashboardPage() {
 
             <div className="divide-y divide-border/60">
               {MOCK_RECENT_SCANS.map((scan) => (
-                <div
+                <Link
                   key={scan.id}
-                  className="p-4 sm:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono hover:bg-elevated/30 transition-colors"
+                  href={`/scan/${scan.id === "scan_04" ? "scan_104" : "scan_101"}`}
+                  className="p-4 sm:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono hover:bg-elevated/50 transition-colors block group"
                 >
                   <div className="space-y-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="text-slate-400 text-[11px] uppercase">
                         [{scan.type}]
                       </span>
-                      <span className="text-white font-medium truncate">
+                      <span className="text-white group-hover:text-accent-cyan transition-colors font-medium truncate">
                         {scan.preview}
                       </span>
                     </div>
@@ -328,7 +329,7 @@ export default function DashboardPage() {
                       {scan.time}
                     </span>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </div>

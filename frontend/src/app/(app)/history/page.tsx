@@ -6,6 +6,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LoadingState, EmptyState, ErrorState } from "@/components/ui/states";
+import Link from "next/link";
 import { History, Filter, Trash2, Eye, Download, Search } from "lucide-react";
 
 // MOCK: Temporary mock scan history matching GET /api/scans
@@ -47,7 +48,7 @@ const INITIAL_MOCK_SCANS = [
     preview: "Your OTP for transaction of Rs 1,450.00 at AMAZON INDIA is 482910. Bank NEVER calls...",
     risk_level: "safe" as const,
     risk_score: 8,
-    risk_label: "08 Likely Safe",
+    risk_label: "8 Likely Safe",
     category: "Standard Transaction OTP",
     created_at: "Oct 05, 18:40",
   },
@@ -247,13 +248,22 @@ export default function HistoryPage() {
                           {scan.created_at}
                         </td>
                         <td className="p-3.5 sm:px-6 text-right whitespace-nowrap">
-                          <button
-                            onClick={() => handleDelete(scan.id)}
-                            className="p-1.5 text-muted-foreground hover:text-destructive transition-colors rounded hover:bg-destructive/10"
-                            title="Delete scan from ledger"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          <div className="flex items-center justify-end gap-1">
+                            <Link
+                              href={`/scan/${scan.id}`}
+                              className="p-1.5 text-muted-foreground hover:text-accent-cyan transition-colors rounded hover:bg-elevated"
+                              title="View full scan dossier"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Link>
+                            <button
+                              onClick={() => handleDelete(scan.id)}
+                              className="p-1.5 text-muted-foreground hover:text-destructive transition-colors rounded hover:bg-destructive/10"
+                              title="Delete scan from ledger"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))

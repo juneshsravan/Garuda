@@ -100,7 +100,7 @@ export function Sidebar({ mobileOpen = false, onCloseMobile }: SidebarProps) {
           <span className="text-slate-400">v2.0</span>
         </div>
         <div className="text-[10px] font-mono text-slate-500">
-          Encrypted at rest · Access controlled
+          Access controlled
         </div>
       </div>
     </div>

@@ -52,7 +52,7 @@ export default function UrlAnalyzerPage() {
             URL &amp; Domain Analyzer
           </h2>
           <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-            Zero-fetch static analysis: punycode, lookalikes, risky TLDs, and verified threat blocklists.
+            Zero-fetch static analysis: punycode, lookalikes, risky TLDs, and open-source threat blocklists.
           </p>
         </div>
 
