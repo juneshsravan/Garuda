@@ -66,6 +66,47 @@ const MOCK_RECENT_SCANS = [
 
 export default function DashboardPage() {
   const [viewState, setViewState] = useState<"normal" | "loading" | "empty" | "error">("normal");
+  const [stats, setStats] = useState(MOCK_DASHBOARD_STATS);
+  const [recentScans, setRecentScans] = useState<any[]>(MOCK_RECENT_SCANS);
+
+  React.useEffect(() => {
+    // GET /api/dashboard/stats if it exists; otherwise keep // MOCK for the dashboard only per instructions
+    async function fetchDashboardData() {
+      try {
+        const { apiRequest } = await import("@/lib/api-client");
+        const statsData = await apiRequest<typeof MOCK_DASHBOARD_STATS>("/api/dashboard/stats");
+        if (statsData) {
+          setStats(statsData);
+        }
+      } catch {
+        // API does not exist yet; keep // MOCK for dashboard only
+      }
+
+      try {
+        const { scanApi } = await import("@/lib/api-client");
+        const res = await scanApi.listScans({ limit: 4 });
+        if (res.items && res.items.length > 0) {
+          setRecentScans(
+            res.items.map((item) => ({
+              id: item.id,
+              type: item.scan_type.toUpperCase(),
+              preview: item.content_preview || item.summary || String(item.id),
+              level: item.risk.level === "likely_safe" ? "safe" : item.risk.level,
+              label: item.risk.label,
+              time: new Date(item.created_at).toLocaleDateString("en-IN", {
+                month: "short",
+                day: "numeric",
+              }),
+            }))
+          );
+        }
+      } catch {
+        // Keep mock recent scans if unauthenticated or error
+      }
+    }
+
+    fetchDashboardData();
+  }, []);
 
   return (
     <div className="space-y-8">
@@ -163,7 +204,7 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent className="p-4 pt-1">
                 <div className="font-mono text-3xl font-bold text-white">
-                  {MOCK_DASHBOARD_STATS.total_scans}
+                  {stats.total_scans}
                 </div>
                 <p className="text-[11px] text-muted-foreground mt-1">
                   Synchronous evaluations
@@ -181,7 +222,7 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent className="p-4 pt-1">
                 <div className="font-mono text-3xl font-bold text-risk-high">
-                  {MOCK_DASHBOARD_STATS.threats_detected}
+                  {stats.threats_detected}
                 </div>
                 <p className="text-[11px] text-slate-400 mt-1">
                   High &amp; Critical severity
@@ -199,7 +240,7 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent className="p-4 pt-1">
                 <div className="font-mono text-3xl font-bold text-risk-suspicious">
-                  {MOCK_DASHBOARD_STATS.suspicious_scans}
+                  {stats.suspicious_scans}
                 </div>
                 <p className="text-[11px] text-slate-400 mt-1">
                   Medium &amp; unverified vectors
@@ -217,7 +258,7 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent className="p-4 pt-1">
                 <div className="font-mono text-3xl font-bold text-risk-safe">
-                  {MOCK_DASHBOARD_STATS.likely_safe}
+                  {stats.likely_safe}
                 </div>
                 <p className="text-[11px] text-slate-400 mt-1">
                   Genuine bank / delivery alerts
@@ -306,10 +347,10 @@ export default function DashboardPage() {
             </div>
 
             <div className="divide-y divide-border/60">
-              {MOCK_RECENT_SCANS.map((scan) => (
+              {recentScans.map((scan) => (
                 <Link
                   key={scan.id}
-                  href={`/scan/${scan.id === "scan_04" ? "scan_104" : "scan_101"}`}
+                  href={`/scan/${scan.id}`}
                   className="p-4 sm:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono hover:bg-elevated/50 transition-colors block group"
                 >
                   <div className="space-y-1 min-w-0">

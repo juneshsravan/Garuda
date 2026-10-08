@@ -2,23 +2,27 @@
 
 import React, { useState } from "react";
 import { showDevTools } from "@/lib/dev-tools";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LoadingState, EmptyState, ErrorState } from "@/components/ui/states";
-import { ConsolePreview } from "@/components/landing/ConsolePreview";
+import { AnalysisDossier } from "@/components/analysis/AnalysisDossier";
+import { scanApi, ApiClientError } from "@/lib/api-client";
+import { AnalysisResponse } from "@/types/analysis";
 import {
   MessageSquareText,
   ShieldCheck,
   RotateCcw,
-  Sparkles,
   Info,
+  CheckCircle2,
 } from "lucide-react";
+import Link from "next/link";
 
 export default function MessageAnalyzerPage() {
   const [text, setText] = useState("");
   const [saveToHistory, setSaveToHistory] = useState(true);
   const [state, setState] = useState<"ready" | "analyzing" | "result" | "empty" | "error">("ready");
+  const [result, setResult] = useState<AnalysisResponse | null>(null);
+  const [errorDetails, setErrorDetails] = useState<string | null>(null);
 
   const maxLength = 5000;
   const charCount = text.length;
@@ -26,18 +30,31 @@ export default function MessageAnalyzerPage() {
   const handleSampleFill = (sampleText: string) => {
     setText(sampleText);
     setState("ready");
+    setErrorDetails(null);
   };
 
-  const handleAnalyze = () => {
-    if (!text.trim()) {
+  const handleAnalyze = async () => {
+    const trimmed = text.trim();
+    if (!trimmed) {
       setState("empty");
       return;
     }
+
     setState("analyzing");
-    // MOCK: In Chunk 6 this calls POST /api/analyze/message {text, save: saveToHistory}
-    setTimeout(() => {
+    setErrorDetails(null);
+
+    try {
+      const response = await scanApi.analyzeMessage({
+        text: trimmed,
+        save: saveToHistory,
+      });
+      setResult(response);
       setState("result");
-    }, 1000);
+    } catch (err: unknown) {
+      const msg = err instanceof ApiClientError ? err.message : (err instanceof Error ? err.message : "Failed to analyze message.");
+      setErrorDetails(msg);
+      setState("error");
+    }
   };
 
   return (
@@ -60,7 +77,7 @@ export default function MessageAnalyzerPage() {
         {/* State Toggle — only visible when NEXT_PUBLIC_SHOW_DEV_TOOLS=true */}
         {showDevTools && (
           <div className="flex items-center gap-1.5 p-1 rounded-lg border border-border bg-elevated/40 text-[11px] font-mono self-start sm:self-auto">
-            <span className="text-muted-foreground px-2">State:</span>
+            <span className="text-muted-foreground px-2">Dev State:</span>
             <button
               onClick={() => setState("ready")}
               className={`px-2 py-0.5 rounded ${state === "ready" ? "bg-primary text-white" : "text-slate-400"}`}
@@ -72,12 +89,6 @@ export default function MessageAnalyzerPage() {
               className={`px-2 py-0.5 rounded ${state === "analyzing" ? "bg-primary text-white" : "text-slate-400"}`}
             >
               Loading
-            </button>
-            <button
-              onClick={() => setState("result")}
-              className={`px-2 py-0.5 rounded ${state === "result" ? "bg-primary text-white" : "text-slate-400"}`}
-            >
-              Result
             </button>
             <button
               onClick={() => setState("empty")}
@@ -96,7 +107,7 @@ export default function MessageAnalyzerPage() {
       </div>
 
       {/* Main Analysis Input Card */}
-      <div className="rounded-xl border border-border bg-surface p-5 sm:p-6 space-y-4">
+      <div className="rounded-xl border border-border bg-surface p-5 sm:p-6 space-y-4 shadow-xl">
         <div>
           <label htmlFor="message-input" className="block font-mono text-xs font-semibold text-slate-300 uppercase mb-2">
             Paste Suspicious Message Text
@@ -112,7 +123,7 @@ export default function MessageAnalyzerPage() {
           />
         </div>
 
-        {/* Controls Bar: Char counter, Save toggle, Quick presets */}
+        {/* Controls Bar: Char counter, Save toggle, Actions */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2 border-t border-border/80">
           <div className="flex flex-wrap items-center gap-4 text-xs font-mono">
             {/* Character counter */}
@@ -136,7 +147,11 @@ export default function MessageAnalyzerPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setText("")}
+              onClick={() => {
+                setText("");
+                setResult(null);
+                setState("ready");
+              }}
               disabled={!text}
               className="gap-1 font-mono text-xs"
             >
@@ -146,6 +161,7 @@ export default function MessageAnalyzerPage() {
 
             <Button
               onClick={handleAnalyze}
+              disabled={state === "analyzing" || !text.trim()}
               className="gap-1.5 font-mono text-xs px-5 font-semibold"
             >
               <ShieldCheck className="w-4 h-4" />
@@ -154,27 +170,27 @@ export default function MessageAnalyzerPage() {
           </div>
         </div>
 
-        {/* Quick sample links */}
+        {/* Quick sample buttons */}
         <div className="pt-3 border-t border-border/60">
           <span className="text-[11px] font-mono text-muted-foreground block mb-2">
-            Try an example:
+            Try a real-world example:
           </span>
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => handleSampleFill("Dear SBI customer, your YONO account will be suspended today. Update PAN immediately: http://sbi-yono-kyc.in-verify.xyz")}
-              className="text-[11px] font-mono px-2 py-1 rounded bg-elevated hover:bg-slate-800 text-slate-300 hover:text-white border border-border"
+              className="text-[11px] font-mono px-2 py-1 rounded bg-elevated hover:bg-slate-800 text-slate-300 hover:text-white border border-border transition-colors"
             >
               [Scam] SBI YONO PAN Suspension
             </button>
             <button
-              onClick={() => handleSampleFill("Your OTP for transaction of Rs 1,450.00 at AMAZON INDIA is 482910. Valid for 10 mins. Do NOT share OTP or password with anyone. Bank NEVER calls for OTP - HDFC Bank")}
-              className="text-[11px] font-mono px-2 py-1 rounded bg-elevated hover:bg-slate-800 text-slate-300 hover:text-white border border-border"
+              onClick={() => handleSampleFill("RBI Kehta Hai: Never share your OTP, PIN, CVV or password with anyone. Bank or RBI never asks for confidential details. For queries, visit your bank branch or check https://rbikehtahai.rbi.org.in/")}
+              className="text-[11px] font-mono px-2 py-1 rounded bg-elevated hover:bg-slate-800 text-slate-300 hover:text-white border border-border transition-colors"
             >
-              [Safe] HDFC Amazon OTP Alert
+              [Genuine] RBI Kehta Hai Advisory
             </button>
             <button
-              onClick={() => handleSampleFill("Congratulations! You won ₹500. Scan this QR immediately to claim your reward.")}
-              className="text-[11px] font-mono px-2 py-1 rounded bg-elevated hover:bg-slate-800 text-slate-300 hover:text-white border border-border"
+              onClick={() => handleSampleFill("Congratulations! You won ₹500 cashback. Scan this QR immediately to claim your reward into bank account: upi://pay?pa=claim.reward92@okaxis&pn=CashDesk&am=500")}
+              className="text-[11px] font-mono px-2 py-1 rounded bg-elevated hover:bg-slate-800 text-slate-300 hover:text-white border border-border transition-colors"
             >
               [Scam] ₹500 QR Lottery Lure
             </button>
@@ -182,11 +198,11 @@ export default function MessageAnalyzerPage() {
         </div>
       </div>
 
-      {/* Dynamic Results & States */}
+      {/* Dynamic Results & State Views */}
       {state === "analyzing" && (
         <LoadingState
           message="Executing Noisy-OR Threat Pipeline..."
-          description="Parsing text on word boundaries, normalizing leetspeak, and evaluating legitimacy discounts."
+          description="Normalizing input text, extracting entities, evaluating threat rules, and computing legitimacy discounts."
         />
       )}
 
@@ -201,23 +217,34 @@ export default function MessageAnalyzerPage() {
 
       {state === "error" && (
         <ErrorState
-          title="Analysis API Unavailable"
-          message="FastAPI backend /api/analyze/message is pending Chunk 4 merge."
-          details="ARCHITECTURE Section 6 contract: POST /api/analyze/message { text: string, save: boolean }"
-          onRetry={() => setState("result")}
+          title="Analysis Request Failed"
+          message={errorDetails || "An unexpected error occurred during message analysis."}
+          details="Ensure backend server is running on port 8000 and you are authenticated."
+          onRetry={handleAnalyze}
         />
       )}
 
-      {state === "result" && (
+      {state === "result" && result && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-mono text-sm font-bold text-white uppercase tracking-wider">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/80 pb-3">
+            <h3 className="font-mono text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
               Analysis Results &amp; Explainability Dossier
             </h3>
-            <Badge variant="cyan">Real-time Evaluation</Badge>
+            <div className="flex items-center gap-2">
+              {result.scan_id && (
+                <Badge variant="cyan" className="text-[10px]">
+                  Saved to History
+                </Badge>
+              )}
+              <Badge variant="default" className="text-[10px]">
+                Engine v{result.engine_version}
+              </Badge>
+            </div>
           </div>
-          {/* Detailed results view matching ARCHITECTURE Section 6 */}
-          <ConsolePreview />
+
+          {/* Real Dossier Display */}
+          <AnalysisDossier analysis={result} rawInput={text} />
         </div>
       )}
 

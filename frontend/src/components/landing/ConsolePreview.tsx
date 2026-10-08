@@ -19,10 +19,13 @@ export function ConsolePreview() {
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="font-mono text-[11px] text-muted-foreground">
+          <span className="font-mono text-[10px] uppercase tracking-wider px-2 py-0.5 rounded bg-primary/20 text-accent-cyan border border-primary/30 font-semibold">
+            Example analysis
+          </span>
+          <span className="font-mono text-[11px] text-muted-foreground hidden sm:inline">
             ENGINE: <span className="text-accent-cyan">v2.0.0-PROD</span>
           </span>
-          <span className="font-mono text-[11px] text-muted-foreground">
+          <span className="font-mono text-[11px] text-muted-foreground hidden md:inline">
             LATENCY: <span className="text-emerald-400">142ms</span>
           </span>
         </div>
