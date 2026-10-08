@@ -7,6 +7,7 @@ from slowapi.errors import RateLimitExceeded
 
 from app.api.routes.analyze import router as analyze_router
 from app.api.routes.auth import router as auth_router
+from app.api.routes.dashboard import router as dashboard_router
 from app.api.routes.health import router as health_router
 from app.api.routes.scans import router as scans_router
 from app.core.config import settings
@@ -52,6 +53,7 @@ app.include_router(health_router, prefix="/api")
 app.include_router(auth_router, prefix="/api")
 app.include_router(analyze_router, prefix="/api")
 app.include_router(scans_router, prefix="/api")
+app.include_router(dashboard_router, prefix="/api")
 
 
 @app.get("/", include_in_schema=False)

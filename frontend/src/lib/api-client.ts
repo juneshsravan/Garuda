@@ -11,6 +11,7 @@ import {
   AnalysisResponse,
   ScanListResponse,
 } from "@/types/analysis";
+import { DashboardStatsResponse } from "@/types/dashboard";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -390,3 +391,12 @@ export const scanApi = {
     });
   },
 };
+
+export const dashboardApi = {
+  getStats(): Promise<DashboardStatsResponse> {
+    return apiRequest<DashboardStatsResponse>("/api/dashboard/stats", {
+      method: "GET",
+    });
+  },
+};
+

@@ -1,12 +1,15 @@
 "use client";
 
-import React, { useState } from "react";
-import { showDevTools } from "@/lib/dev-tools";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { useRouter } from "next/navigation";
+import { showDevTools } from "@/lib/dev-tools";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LoadingState, EmptyState, ErrorState } from "@/components/ui/states";
+import { dashboardApi, ApiClientError } from "@/lib/api-client";
+import { DashboardStatsResponse } from "@/types/dashboard";
 import {
   ShieldAlert,
   AlertTriangle,
@@ -17,96 +20,97 @@ import {
   Globe,
   QrCode,
   Layers,
+  BarChart3,
+  TrendingUp,
+  Clock,
+  Shield,
 } from "lucide-react";
 
-// MOCK: Temporary mock stats for UI demonstration before Chunk 6 API is merged
-const MOCK_DASHBOARD_STATS = {
-  total_scans: 38,
-  threats_detected: 14, // Honest wording: never "Blocked"
-  suspicious_scans: 9,
-  likely_safe: 15,     // Honest wording: never "Verified Safe"
-};
-
-// MOCK: Recent scan items
-const MOCK_RECENT_SCANS = [
-  {
-    id: "scan_01",
-    type: "MESSAGE",
-    preview: "Electricity disconnection warning from 9000000001...",
-    level: "high" as const,
-    label: "88 High Risk",
-    time: "10 mins ago",
-  },
-  {
-    id: "scan_02",
-    type: "QR / UPI",
-    preview: "Fake KBC lottery ₹500 cashback claim QR...",
-    // MOCK: High (65-100) per ARCHITECTURE §8.5; Critical requires a blocklist/threat-intel match
-    level: "high" as const,
-    label: "79 High Risk",
-    time: "2 hours ago",
-  },
-  {
-    id: "scan_03",
-    type: "URL",
-    preview: "https://sbi.co.in/portal/web/home",
-    level: "safe" as const,
-    label: "14 Likely Safe",
-    time: "Yesterday",
-  },
-  {
-    id: "scan_04",
-    type: "MESSAGE",
-    preview: "Your OTP for Rs 1,450.00 at AMAZON INDIA...",
-    level: "safe" as const,
-    label: "8 Likely Safe",
-    time: "2 days ago",
-  },
-];
-
 export default function DashboardPage() {
-  const [viewState, setViewState] = useState<"normal" | "loading" | "empty" | "error">("normal");
-  const [stats, setStats] = useState(MOCK_DASHBOARD_STATS);
-  const [recentScans, setRecentScans] = useState<any[]>(MOCK_RECENT_SCANS);
+  const router = useRouter();
+  const [stats, setStats] = useState<DashboardStatsResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [devState, setDevState] = useState<"auto" | "loading" | "empty" | "error">("auto");
 
-  React.useEffect(() => {
-    // GET /api/dashboard/stats if it exists; otherwise keep // MOCK for the dashboard only per instructions
-    async function fetchDashboardData() {
-      try {
-        const { apiRequest } = await import("@/lib/api-client");
-        const statsData = await apiRequest<typeof MOCK_DASHBOARD_STATS>("/api/dashboard/stats");
-        if (statsData) {
-          setStats(statsData);
-        }
-      } catch {
-        // API does not exist yet; keep // MOCK for dashboard only
-      }
-
-      try {
-        const { scanApi } = await import("@/lib/api-client");
-        const res = await scanApi.listScans({ limit: 4 });
-        if (res.items && res.items.length > 0) {
-          setRecentScans(
-            res.items.map((item) => ({
-              id: item.id,
-              type: item.scan_type.toUpperCase(),
-              preview: item.content_preview || item.summary || String(item.id),
-              level: item.risk.level === "likely_safe" ? "safe" : item.risk.level,
-              label: item.risk.label,
-              time: new Date(item.created_at).toLocaleDateString("en-IN", {
-                month: "short",
-                day: "numeric",
-              }),
-            }))
-          );
-        }
-      } catch {
-        // Keep mock recent scans if unauthenticated or error
-      }
+  const fetchDashboardStats = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await dashboardApi.getStats();
+      setStats(data);
+    } catch (err: unknown) {
+      const msg =
+        err instanceof ApiClientError
+          ? err.message
+          : err instanceof Error
+          ? err.message
+          : "Failed to load security telemetry.";
+      setError(msg);
+    } finally {
+      setIsLoading(false);
     }
-
-    fetchDashboardData();
   }, []);
+
+  useEffect(() => {
+    fetchDashboardStats();
+  }, [fetchDashboardStats]);
+
+  // Format date string to display label (e.g. "Oct 8" or "10/08")
+  const formatDayLabel = (dateStr: string) => {
+    try {
+      const parts = dateStr.split("-");
+      if (parts.length === 3) {
+        const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+        return d.toLocaleDateString("en-IN", { month: "short", day: "numeric" });
+      }
+      return dateStr;
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const formatRelativeTime = (isoString: string) => {
+    try {
+      const date = new Date(isoString);
+      const diffSec = Math.floor((Date.now() - date.getTime()) / 1000);
+      if (diffSec < 60) return "Just now";
+      if (diffSec < 3600) return `${Math.floor(diffSec / 60)} mins ago`;
+      if (diffSec < 86400) return `${Math.floor(diffSec / 3600)} hours ago`;
+      if (diffSec < 172800) return "Yesterday";
+      return date.toLocaleDateString("en-IN", { month: "short", day: "numeric" });
+    } catch {
+      return isoString;
+    }
+  };
+
+  const getRiskBadgeVariant = (level: string) => {
+    switch (level?.toLowerCase()) {
+      case "likely_safe":
+      case "safe":
+        return "safe";
+      case "suspicious":
+        return "suspicious";
+      case "medium":
+        return "medium";
+      case "high":
+        return "high";
+      case "critical":
+        return "critical";
+      default:
+        return "unverified";
+    }
+  };
+
+  // Max daily count for chart scaling
+  const maxDailyCount = stats?.scans_per_day
+    ? Math.max(1, ...stats.scans_per_day.map((d) => d.count))
+    : 1;
+
+  // Active state determination
+  const isDevLoading = devState === "loading";
+  const isDevEmpty = devState === "empty";
+  const isDevError = devState === "error";
 
   return (
     <div className="space-y-8">
@@ -127,35 +131,35 @@ export default function DashboardPage() {
         {/* State Toggle for UI Testing — only visible when NEXT_PUBLIC_SHOW_DEV_TOOLS=true */}
         {showDevTools && (
           <div className="flex items-center gap-1.5 p-1 rounded-lg border border-border bg-elevated/40 text-[11px] font-mono self-start sm:self-auto">
-            <span className="text-muted-foreground px-2">Preview State:</span>
+            <span className="text-muted-foreground px-2">Dev State:</span>
             <button
-              onClick={() => setViewState("normal")}
+              onClick={() => setDevState("auto")}
               className={`px-2.5 py-1 rounded transition-colors ${
-                viewState === "normal" ? "bg-primary text-white" : "text-slate-400 hover:text-white"
+                devState === "auto" ? "bg-primary text-white" : "text-slate-400 hover:text-white"
               }`}
             >
-              Normal
+              Live
             </button>
             <button
-              onClick={() => setViewState("loading")}
+              onClick={() => setDevState("loading")}
               className={`px-2.5 py-1 rounded transition-colors ${
-                viewState === "loading" ? "bg-primary text-white" : "text-slate-400 hover:text-white"
+                devState === "loading" ? "bg-primary text-white" : "text-slate-400 hover:text-white"
               }`}
             >
               Loading
             </button>
             <button
-              onClick={() => setViewState("empty")}
+              onClick={() => setDevState("empty")}
               className={`px-2.5 py-1 rounded transition-colors ${
-                viewState === "empty" ? "bg-primary text-white" : "text-slate-400 hover:text-white"
+                devState === "empty" ? "bg-primary text-white" : "text-slate-400 hover:text-white"
               }`}
             >
               Empty
             </button>
             <button
-              onClick={() => setViewState("error")}
+              onClick={() => setDevState("error")}
               className={`px-2.5 py-1 rounded transition-colors ${
-                viewState === "error" ? "bg-primary text-white" : "text-slate-400 hover:text-white"
+                devState === "error" ? "bg-primary text-white" : "text-slate-400 hover:text-white"
               }`}
             >
               Error
@@ -165,34 +169,34 @@ export default function DashboardPage() {
       </div>
 
       {/* State Renderers */}
-      {viewState === "loading" && (
+      {(isLoading || isDevLoading) && (
         <LoadingState
           message="Querying telemetry..."
-          description="Fetching personal scan distribution from the analysis service."
+          description="Fetching personal scan metrics and risk distributions from the detection ledger."
         />
       )}
 
-      {viewState === "error" && (
+      {((!isLoading && error && devState === "auto") || isDevError) && (
         <ErrorState
-          title="Telemetry Engine Offline"
-          message="Failed to retrieve analytics from /api/dashboard/stats."
-          details="Error code: DB_POOL_TIMEOUT - Backend service pending Chunk 6 integration."
-          onRetry={() => setViewState("normal")}
+          title="Telemetry Engine Error"
+          message={error || "Failed to retrieve metrics from /api/dashboard/stats."}
+          details="Ensure backend server is running and your authentication session is valid."
+          onRetry={fetchDashboardStats}
         />
       )}
 
-      {viewState === "empty" && (
+      {(!isLoading && !error && devState === "auto" && stats?.total_scans === 0) || isDevEmpty ? (
         <EmptyState
           title="No Scans Logged Yet"
           description="Your security ledger is empty. Submit a suspicious SMS, URL, or UPI QR code to populate your detection statistics."
           actionLabel="Analyze First Message"
-          onAction={() => setViewState("normal")}
+          onAction={() => router.push("/message-analyzer")}
         />
-      )}
+      ) : null}
 
-      {viewState === "normal" && (
+      {!isLoading && !error && devState === "auto" && stats && stats.total_scans > 0 && (
         <>
-          {/* 4 Stat Cards */}
+          {/* 4 Metric Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* 1. Total Scans */}
             <Card>
@@ -207,7 +211,7 @@ export default function DashboardPage() {
                   {stats.total_scans}
                 </div>
                 <p className="text-[11px] text-muted-foreground mt-1">
-                  Synchronous evaluations
+                  Evaluated across all vectors
                 </p>
               </CardContent>
             </Card>
@@ -240,10 +244,10 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent className="p-4 pt-1">
                 <div className="font-mono text-3xl font-bold text-risk-suspicious">
-                  {stats.suspicious_scans}
+                  {stats.suspicious}
                 </div>
                 <p className="text-[11px] text-slate-400 mt-1">
-                  Medium &amp; unverified vectors
+                  Medium &amp; Suspicious vectors
                 </p>
               </CardContent>
             </Card>
@@ -261,11 +265,140 @@ export default function DashboardPage() {
                   {stats.likely_safe}
                 </div>
                 <p className="text-[11px] text-slate-400 mt-1">
-                  Genuine bank / delivery alerts
+                  Genuine alerts &amp; advisories
                 </p>
               </CardContent>
             </Card>
           </div>
+
+          {/* Telemetry Activity & Risk Distribution Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* 14-Day Activity Histogram (Takes 2 cols) */}
+            <div className="lg:col-span-2 rounded-xl border border-border bg-surface p-5 sm:p-6 space-y-4">
+              <div className="flex items-center justify-between border-b border-border/80 pb-3">
+                <h3 className="font-mono text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-accent-cyan" />
+                  14-Day Scan Telemetry
+                </h3>
+                <span className="text-[11px] font-mono text-muted-foreground">
+                  UTC Daily Volume
+                </span>
+              </div>
+
+              {/* Bar Histogram */}
+              <div className="h-44 flex items-end gap-1.5 sm:gap-2 pt-6 pb-2 px-1">
+                {stats.scans_per_day.map((day, idx) => {
+                  const heightPercent =
+                    day.count > 0 ? Math.max(12, Math.round((day.count / maxDailyCount) * 100)) : 4;
+                  const isToday = idx === stats.scans_per_day.length - 1;
+
+                  return (
+                    <div
+                      key={day.date}
+                      className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end group relative"
+                    >
+                      {/* Tooltip on Hover */}
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-8 px-2 py-0.5 rounded bg-elevated border border-slate-700 text-[10px] font-mono text-white whitespace-nowrap pointer-events-none z-10 shadow-lg">
+                        {day.date}: {day.count} {day.count === 1 ? "scan" : "scans"}
+                      </div>
+
+                      {/* Bar */}
+                      <div
+                        style={{ height: `${heightPercent}%` }}
+                        className={`w-full rounded-t transition-all duration-300 ${
+                          day.count > 0
+                            ? isToday
+                              ? "bg-accent-cyan shadow-sm shadow-cyan-500/50"
+                              : "bg-primary/80 hover:bg-primary"
+                            : "bg-slate-800/40"
+                        }`}
+                      />
+
+                      {/* Day Label (Alternating on small screens) */}
+                      <span className="text-[9px] sm:text-[10px] font-mono text-muted-foreground truncate w-full text-center">
+                        {idx % 2 === 0 || isToday ? formatDayLabel(day.date).split(" ")[1] : ""}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Risk Distribution Breakdown */}
+            <div className="rounded-xl border border-border bg-surface p-5 sm:p-6 space-y-4">
+              <div className="flex items-center justify-between border-b border-border/80 pb-3">
+                <h3 className="font-mono text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                  <BarChart3 className="w-4 h-4 text-primary" />
+                  Risk Distribution
+                </h3>
+              </div>
+
+              <div className="space-y-3 pt-1">
+                {[
+                  { key: "critical", label: "Critical", color: "bg-risk-critical text-risk-critical" },
+                  { key: "high", label: "High Risk", color: "bg-risk-high text-risk-high" },
+                  { key: "medium", label: "Medium Risk", color: "bg-risk-medium text-risk-medium" },
+                  { key: "suspicious", label: "Suspicious", color: "bg-risk-suspicious text-risk-suspicious" },
+                  { key: "likely_safe", label: "Likely Safe", color: "bg-risk-safe text-risk-safe" },
+                ].map(({ key, label, color }) => {
+                  const count = stats.risk_distribution[key] || 0;
+                  const pct = stats.total_scans > 0 ? Math.round((count / stats.total_scans) * 100) : 0;
+
+                  return (
+                    <div key={key} className="space-y-1">
+                      <div className="flex items-center justify-between text-xs font-mono">
+                        <span className="text-slate-300 flex items-center gap-1.5">
+                          <span className={`w-2 h-2 rounded-full ${color.split(" ")[0]}`} />
+                          {label}
+                        </span>
+                        <span className="text-muted-foreground">
+                          {count} ({pct}%)
+                        </span>
+                      </div>
+                      <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                        <div
+                          style={{ width: `${pct}%` }}
+                          className={`h-full rounded-full ${color.split(" ")[0]}`}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Top Threat Categories */}
+          {stats.top_categories.length > 0 && (
+            <div className="rounded-xl border border-border bg-surface p-5 sm:p-6 space-y-4">
+              <div className="flex items-center justify-between border-b border-border/80 pb-3">
+                <h3 className="font-mono text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-amber-400" />
+                  Top Detected Threat Categories
+                </h3>
+                <span className="text-[11px] font-mono text-muted-foreground">
+                  Top 5 Vector Profiles
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {stats.top_categories.map((cat, i) => (
+                  <div
+                    key={cat.code}
+                    className="p-3 rounded-lg border border-border/80 bg-elevated/40 flex items-center justify-between gap-3 text-xs font-mono"
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-muted-foreground text-[10px]">#{i + 1}</span>
+                      <span className="text-slate-200 font-semibold truncate">{cat.label}</span>
+                    </div>
+                    <Badge variant="default" className="text-[11px] font-mono shrink-0">
+                      {cat.count} {cat.count === 1 ? "scan" : "scans"}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Quick Launchers */}
           <div className="rounded-xl border border-border bg-surface p-5 sm:p-6 space-y-4">
@@ -328,52 +461,57 @@ export default function DashboardPage() {
           </div>
 
           {/* Recent Scans Table */}
-          <div className="rounded-xl border border-border bg-surface overflow-hidden">
-            <div className="p-4 sm:px-6 border-b border-border flex items-center justify-between">
-              <div>
-                <h3 className="font-mono text-sm font-bold text-white">
-                  Recent Scan Telemetry
-                </h3>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Latest threat assessments logged in this workspace session.
-                </p>
+          {stats.recent_scans.length > 0 && (
+            <div className="rounded-xl border border-border bg-surface overflow-hidden">
+              <div className="p-4 sm:px-6 border-b border-border flex items-center justify-between">
+                <div>
+                  <h3 className="font-mono text-sm font-bold text-white">
+                    Recent Scan Telemetry
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Latest threat assessments logged in this workspace session.
+                  </p>
+                </div>
+                <Button asChild variant="outline" size="sm" className="gap-1 font-mono text-xs">
+                  <Link href="/history">
+                    All History
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </Button>
               </div>
-              <Button asChild variant="outline" size="sm" className="gap-1 font-mono text-xs">
-                <Link href="/history">
-                  All History
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
-              </Button>
-            </div>
 
-            <div className="divide-y divide-border/60">
-              {recentScans.map((scan) => (
-                <Link
-                  key={scan.id}
-                  href={`/scan/${scan.id}`}
-                  className="p-4 sm:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono hover:bg-elevated/50 transition-colors block group"
-                >
-                  <div className="space-y-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-slate-400 text-[11px] uppercase">
-                        [{scan.type}]
-                      </span>
-                      <span className="text-white group-hover:text-accent-cyan transition-colors font-medium truncate">
-                        {scan.preview}
+              <div className="divide-y divide-border/60">
+                {stats.recent_scans.map((scan) => (
+                  <Link
+                    key={scan.id}
+                    href={`/scan/${scan.id}`}
+                    className="p-4 sm:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono hover:bg-elevated/50 transition-colors block group"
+                  >
+                    <div className="space-y-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-slate-400 text-[11px] uppercase font-semibold">
+                          [{scan.scan_type}]
+                        </span>
+                        <span className="text-white group-hover:text-accent-cyan transition-colors font-medium truncate">
+                          {scan.preview || `Scan ${scan.id}`}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 shrink-0">
+                      <Badge variant={getRiskBadgeVariant(scan.risk_level)}>
+                        {scan.risk_label}
+                      </Badge>
+                      <span className="text-muted-foreground text-[11px] flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {formatRelativeTime(scan.created_at)}
                       </span>
                     </div>
-                  </div>
-
-                  <div className="flex items-center gap-4 shrink-0">
-                    <Badge variant={scan.level}>{scan.label}</Badge>
-                    <span className="text-muted-foreground text-[11px]">
-                      {scan.time}
-                    </span>
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </>
       )}
     </div>
