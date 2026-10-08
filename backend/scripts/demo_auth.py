@@ -56,11 +56,11 @@ def main():
     with dev_engine.connect() as conn:
         row = conn.execute(text("""
             SELECT u.id, u.email, u.full_name, u.role, u.password_hash, u.created_at,
-                   count(s.id) as session_count
+                   u.is_active, u.email_verified_at, count(s.id) as session_count
             FROM users u
             LEFT JOIN sessions s ON s.user_id = u.id
             WHERE u.email = 'junesh@garuda.ai'
-            GROUP BY u.id, u.email, u.full_name, u.role, u.password_hash, u.created_at
+            GROUP BY u.id, u.email, u.full_name, u.role, u.password_hash, u.created_at, u.is_active, u.email_verified_at
         """)).fetchone()
         
         print("\n" + "=" * 80)
@@ -72,7 +72,9 @@ def main():
         print(f"Role         : {row[3]}")
         print(f"Argon2 Hash  : {row[4][:36]}...")
         print(f"Created At   : {row[5]}")
-        print(f"Sessions     : {row[6]} active session(s)")
+        print(f"Is Active    : {row[6]}")
+        print(f"Verified At  : {row[7]} (null until chunk 10 verification)")
+        print(f"Sessions     : {row[8]} active session(s)")
 
         audit_rows = conn.execute(text("""
             SELECT action, entity_type, created_at, metadata
