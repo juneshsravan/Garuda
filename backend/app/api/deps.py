@@ -1,6 +1,7 @@
 import uuid
 from typing import Optional
-from fastapi import Depends, Header, Request, status
+from fastapi import Depends, Request, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 import jwt
 from sqlalchemy.orm import Session
 
@@ -9,30 +10,37 @@ from app.core.security import decode_access_token
 from app.db.session import get_db
 from app.models.user import User
 
+security = HTTPBearer(auto_error=False)
+
 
 def get_current_user(
-    authorization: Optional[str] = Header(None),
+    request: Request,
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
     db: Session = Depends(get_db),
 ) -> User:
     """
-    FastAPI dependency: authenticates user via Authorization: Bearer <token>.
+    FastAPI dependency: authenticates user via HTTP Bearer token.
+    Exposes HTTPBearer security scheme to OpenAPI so /docs displays Authorize button and lock icons.
     """
-    if not authorization:
-        raise AppException(
-            code="UNAUTHORIZED",
-            message="Authentication credentials were not provided.",
-            status_code=status.HTTP_401_UNAUTHORIZED,
-        )
+    auth_header = request.headers.get("authorization")
 
-    parts = authorization.split()
-    if len(parts) != 2 or parts[0].lower() != "bearer":
-        raise AppException(
-            code="INVALID_AUTH_HEADER",
-            message="Invalid Authorization header format. Expected 'Bearer <token>'.",
-            status_code=status.HTTP_401_UNAUTHORIZED,
-        )
-
-    token = parts[1]
+    if not credentials:
+        if not auth_header:
+            raise AppException(
+                code="UNAUTHORIZED",
+                message="Authentication credentials were not provided.",
+                status_code=status.HTTP_401_UNAUTHORIZED,
+            )
+        parts = auth_header.split()
+        if len(parts) != 2 or parts[0].lower() != "bearer":
+            raise AppException(
+                code="INVALID_AUTH_HEADER",
+                message="Invalid Authorization header format. Expected 'Bearer <token>'.",
+                status_code=status.HTTP_401_UNAUTHORIZED,
+            )
+        token = parts[1]
+    else:
+        token = credentials.credentials
     try:
         payload = decode_access_token(token)
     except jwt.ExpiredSignatureError:
