@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { GarudaLogo } from "@/components/brand/GarudaLogo";
@@ -10,20 +10,32 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { LoadingState } from "@/components/ui/states";
 import { loginSchema, LoginFormData } from "@/lib/validations/auth";
-import { Eye, EyeOff, AlertCircle, Loader2, ArrowRight } from "lucide-react";
+import { Eye, EyeOff, AlertCircle, Clock, Loader2, ArrowRight } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const sessionMessage = searchParams.get("message");
+  const returnUrl = searchParams.get("returnUrl");
+
   const { login, user, isLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Route guard: /login redirects to /dashboard when logged in
+  // Determine post-login destination URL safely
+  const getDestination = () => {
+    if (returnUrl && returnUrl.startsWith("/") && !returnUrl.startsWith("//")) {
+      return returnUrl;
+    }
+    return "/dashboard";
+  };
+
+  // Route guard: /login redirects to destination when logged in
   useEffect(() => {
     if (!isLoading && user) {
-      router.push("/dashboard");
+      router.push(getDestination());
     }
   }, [isLoading, user, router]);
 
@@ -52,7 +64,7 @@ export default function LoginPage() {
         return;
       }
 
-      router.push("/dashboard");
+      router.push(getDestination());
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed to authenticate. Please check connection.";
       setApiError(message);
@@ -87,6 +99,19 @@ export default function LoginPage() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4 relative z-10">
         <div className="rounded-xl border border-border bg-surface p-6 sm:p-8 shadow-xl">
+          {/* Friendly Session Expiry Notice */}
+          {sessionMessage && (
+            <div className="mb-5 p-3 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-200 text-xs font-mono flex items-start gap-2.5">
+              <Clock className="w-4 h-4 shrink-0 text-amber-400 mt-0.5" />
+              <div>
+                <p className="font-semibold text-amber-300">{sessionMessage}</p>
+                <p className="text-[11px] text-amber-200/80 mt-0.5">
+                  Any unsaved message draft has been preserved. Please sign in to resume.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* API Error Notification */}
           {apiError && (
             <div className="mb-5 p-3 rounded-lg border border-destructive/30 bg-destructive/10 text-destructive text-xs font-mono flex items-start gap-2">
@@ -213,5 +238,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <React.Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-background"><LoadingState message="Loading login console..." /></div>}>
+      <LoginForm />
+    </React.Suspense>
   );
 }

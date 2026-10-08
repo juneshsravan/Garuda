@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { User } from "@/types/auth";
-import { authApi, setAccessToken, ApiClientError } from "@/lib/api-client";
+import { authApi, setAccessToken, onSessionExpired, ApiClientError } from "@/lib/api-client";
 
 export interface AuthResult {
   success: boolean;
@@ -26,6 +26,14 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  // Subscribe to session expiration events from api-client
+  useEffect(() => {
+    const unsubscribe = onSessionExpired(() => {
+      setUser(null);
+    });
+    return unsubscribe;
+  }, []);
 
   // Restore session on page load per ARCHITECTURE Section 6:
   // POST /api/auth/refresh to rotate/restore session, then GET /api/auth/me for user details.

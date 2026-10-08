@@ -24,11 +24,35 @@ export default function MessageAnalyzerPage() {
   const [result, setResult] = useState<AnalysisResponse | null>(null);
   const [errorDetails, setErrorDetails] = useState<string | null>(null);
 
+  // Restore draft message from sessionStorage if available
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedDraft = sessionStorage.getItem("garuda_draft_message");
+      if (savedDraft) {
+        setText(savedDraft);
+      }
+    }
+  }, []);
+
   const maxLength = 5000;
   const charCount = text.length;
 
+  const handleTextChange = (val: string) => {
+    setText(val);
+    if (typeof window !== "undefined") {
+      if (val) {
+        sessionStorage.setItem("garuda_draft_message", val);
+      } else {
+        sessionStorage.removeItem("garuda_draft_message");
+      }
+    }
+  };
+
   const handleSampleFill = (sampleText: string) => {
     setText(sampleText);
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("garuda_draft_message", sampleText);
+    }
     setState("ready");
     setErrorDetails(null);
   };
@@ -38,6 +62,10 @@ export default function MessageAnalyzerPage() {
     if (!trimmed) {
       setState("empty");
       return;
+    }
+
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("garuda_draft_message", trimmed);
     }
 
     setState("analyzing");
@@ -116,7 +144,7 @@ export default function MessageAnalyzerPage() {
             id="message-input"
             rows={5}
             value={text}
-            onChange={(e) => setText(e.target.value)}
+            onChange={(e) => handleTextChange(e.target.value)}
             maxLength={maxLength}
             placeholder="Paste raw SMS, WhatsApp, Telegram, or email notification text here (e.g., 'Dear SBI customer, your YONO account will be suspended today. Update PAN immediately: http://...')..."
             className="w-full rounded-lg border border-input bg-input-bg p-3.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-mono transition-colors"
@@ -149,6 +177,9 @@ export default function MessageAnalyzerPage() {
               size="sm"
               onClick={() => {
                 setText("");
+                if (typeof window !== "undefined") {
+                  sessionStorage.removeItem("garuda_draft_message");
+                }
                 setResult(null);
                 setState("ready");
               }}
