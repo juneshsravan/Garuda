@@ -5,8 +5,10 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from slowapi.errors import RateLimitExceeded
 
+from app.api.routes.analyze import router as analyze_router
 from app.api.routes.auth import router as auth_router
 from app.api.routes.health import router as health_router
+from app.api.routes.scans import router as scans_router
 from app.core.config import settings
 from app.core.errors import (
     AppException,
@@ -48,6 +50,8 @@ app.add_exception_handler(Exception, generic_exception_handler)
 # Include API Routers
 app.include_router(health_router, prefix="/api")
 app.include_router(auth_router, prefix="/api")
+app.include_router(analyze_router, prefix="/api")
+app.include_router(scans_router, prefix="/api")
 
 
 @app.get("/", include_in_schema=False)
