@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -8,16 +8,24 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { GarudaLogo } from "@/components/brand/GarudaLogo";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { LoadingState } from "@/components/ui/states";
 import { loginSchema, LoginFormData } from "@/lib/validations/auth";
 import { Eye, EyeOff, AlertCircle, Loader2, ArrowRight } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, user, isLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Route guard: /login redirects to /dashboard when logged in
+  useEffect(() => {
+    if (!isLoading && user) {
+      router.push("/dashboard");
+    }
+  }, [isLoading, user, router]);
 
   const {
     register,
@@ -36,8 +44,6 @@ export default function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      // MOCK: Built against ARCHITECTURE Section 6 contract
-      // When backend auth is connected, this calls POST /api/auth/login
       const result = await login(data.email, data.password);
 
       if (!result.success) {
@@ -53,6 +59,14 @@ export default function LoginPage() {
       setIsSubmitting(false);
     }
   };
+
+  if (isLoading || user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <LoadingState message="Verifying security authorization..." />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 bg-background relative overflow-hidden">
@@ -152,7 +166,6 @@ export default function LoginPage() {
                   )}
                 </button>
               </div>
-
               {errors.password && (
                 <p className="text-[11px] font-mono text-destructive mt-1">
                   {errors.password.message}

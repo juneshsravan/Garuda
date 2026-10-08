@@ -1,10 +1,19 @@
-import { ApiError } from "@/types/auth";
+import {
+  ApiError,
+  AuthResponse,
+  LoginRequest,
+  MessageResponse,
+  RegisterRequest,
+  TokenRefreshResponse,
+  UserMeResponse,
+} from "@/types/auth";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
+// Access token kept strictly in memory per ARCHITECTURE Section 6
 let memoryAccessToken: string | null = null;
 
-export function setAccessToken(token: string | null) {
+export function setAccessToken(token: string | null): void {
   memoryAccessToken = token;
 }
 
@@ -14,13 +23,20 @@ export function getAccessToken(): string | null {
 
 export class ApiClientError extends Error {
   code: string;
-  details?: Record<string, string>;
+  details?: Record<string, string[] | string>;
+  status?: number;
 
-  constructor(message: string, code = "UNKNOWN_ERROR", details?: Record<string, string>) {
+  constructor(
+    message: string,
+    code = "UNKNOWN_ERROR",
+    details?: Record<string, string[] | string>,
+    status?: number
+  ) {
     super(message);
     this.name = "ApiClientError";
     this.code = code;
     this.details = details;
+    this.status = status;
   }
 }
 
@@ -29,12 +45,13 @@ export async function apiRequest<T>(
   options: RequestInit = {}
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
-  
+
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...(options.headers as Record<string, string>),
   };
 
+  // If we have an in-memory access token, attach Bearer header
   if (memoryAccessToken) {
     headers["Authorization"] = `Bearer ${memoryAccessToken}`;
   }
@@ -42,7 +59,7 @@ export async function apiRequest<T>(
   const response = await fetch(url, {
     ...options,
     headers,
-    credentials: "include", // for httpOnly refresh cookies
+    credentials: "include", // Required for httpOnly SameSite=Lax refresh cookie
   });
 
   if (!response.ok) {
@@ -50,22 +67,62 @@ export async function apiRequest<T>(
     try {
       errorData = await response.json();
     } catch {
-      // not JSON
+      // Body is not JSON
     }
 
     if (errorData?.error) {
       throw new ApiClientError(
         errorData.error.message,
         errorData.error.code,
-        errorData.error.details
+        errorData.error.details,
+        response.status
       );
     }
 
     throw new ApiClientError(
       `Request failed with status ${response.status}`,
-      `HTTP_${response.status}`
+      `HTTP_${response.status}`,
+      undefined,
+      response.status
     );
   }
 
   return response.json();
 }
+
+/**
+ * Typed API Client matching docs/ARCHITECTURE.md Section 6
+ */
+export const authApi = {
+  register(data: RegisterRequest): Promise<AuthResponse> {
+    return apiRequest<AuthResponse>("/api/auth/register", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+  login(data: LoginRequest): Promise<AuthResponse> {
+    return apiRequest<AuthResponse>("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+  refresh(): Promise<TokenRefreshResponse> {
+    return apiRequest<TokenRefreshResponse>("/api/auth/refresh", {
+      method: "POST",
+    });
+  },
+
+  logout(): Promise<MessageResponse> {
+    return apiRequest<MessageResponse>("/api/auth/logout", {
+      method: "POST",
+    });
+  },
+
+  getMe(): Promise<UserMeResponse> {
+    return apiRequest<UserMeResponse>("/api/auth/me", {
+      method: "GET",
+    });
+  },
+};

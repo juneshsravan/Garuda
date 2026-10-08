@@ -25,15 +25,16 @@ export function Topbar({ onOpenMobile }: TopbarProps) {
   );
   const pageTitle = currentItem ? currentItem.label : "Security Console";
 
-  // Compute initials
+  // Compute initials from real user
   const initials = user?.full_name
     ? user.full_name
-        .split(" ")
+        .trim()
+        .split(/\s+/)
         .map((n) => n[0])
         .join("")
         .substring(0, 2)
         .toUpperCase()
-    : "JS";
+    : (user?.email ? user.email.substring(0, 2).toUpperCase() : "U");
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -68,13 +69,20 @@ export function Topbar({ onOpenMobile }: TopbarProps) {
         </h1>
       </div>
 
-      {/* Right: Telemetry Badge + Avatar Dropdown */}
-      <div className="flex items-center gap-4">
+      {/* Right: Telemetry Badge + Unverified Pill + Avatar Dropdown */}
+      <div className="flex items-center gap-3 sm:gap-4">
         {/* Quick status pill on larger screens */}
         <div className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-md border border-border bg-elevated/50 font-mono text-xs text-muted-foreground">
           <Shield className="w-3.5 h-3.5 text-accent-cyan" />
           <span>Threat Engine: <strong className="text-emerald-400 font-normal">Active</strong></span>
         </div>
+
+        {/* Unverified Email Pill */}
+        {user && user.email_verified_at == null && (
+          <span className="hidden md:inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-mono bg-amber-500/10 text-amber-400 border border-amber-500/30">
+            Unverified Email
+          </span>
+        )}
 
         {/* Profile Avatar Dropdown */}
         <div className="relative" ref={dropdownRef}>
@@ -92,18 +100,29 @@ export function Topbar({ onOpenMobile }: TopbarProps) {
 
           {/* Accessible Dropdown Card */}
           {dropdownOpen && (
-            <div className="absolute right-0 mt-2 w-56 rounded-lg border border-border bg-elevated shadow-2xl py-1 text-xs font-mono z-50 animate-in fade-in-50 zoom-in-95">
-              {/* User Header */}
+            <div className="absolute right-0 mt-2 w-60 rounded-lg border border-border bg-elevated shadow-2xl py-1 text-xs font-mono z-50 animate-in fade-in-50 zoom-in-95">
+              {/* Real Logged-in User Header */}
               <div className="px-4 py-3 border-b border-border/80">
                 <p className="font-semibold text-white truncate">
-                  {user?.full_name || "Defense Analyst"}
+                  {user?.full_name || "User"}
                 </p>
                 <p className="text-[11px] text-muted-foreground truncate mt-0.5">
-                  {user?.email || "analyst@garuda.defense"}
+                  {user?.email || ""}
                 </p>
-                <span className="inline-block mt-1.5 px-1.5 py-0.5 rounded text-[10px] bg-primary/20 text-accent-cyan border border-primary/30">
-                  Role: {user?.role || "user"}
-                </span>
+                <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                  <span className="inline-block px-1.5 py-0.5 rounded text-[10px] bg-primary/20 text-accent-cyan border border-primary/30">
+                    Role: {user?.role || "user"}
+                  </span>
+                  {user?.email_verified_at == null ? (
+                    <span className="inline-block px-1.5 py-0.5 rounded text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                      Unverified Email
+                    </span>
+                  ) : (
+                    <span className="inline-block px-1.5 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                      Verified
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* Links */}

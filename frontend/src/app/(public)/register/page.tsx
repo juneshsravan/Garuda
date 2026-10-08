@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -8,20 +8,29 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { GarudaLogo } from "@/components/brand/GarudaLogo";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { LoadingState } from "@/components/ui/states";
 import { registerSchema, RegisterFormData } from "@/lib/validations/auth";
 import { Eye, EyeOff, AlertCircle, Loader2, UserPlus, Shield } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { register: registerUser } = useAuth();
+  const { register: registerUser, user, isLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Route guard: /register redirects to /dashboard when logged in
+  useEffect(() => {
+    if (!isLoading && user) {
+      router.push("/dashboard");
+    }
+  }, [isLoading, user, router]);
+
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
@@ -38,12 +47,32 @@ export default function RegisterPage() {
     setIsSubmitting(true);
 
     try {
-      // MOCK: Built against ARCHITECTURE Section 6 contract
-      // When backend auth is connected, this calls POST /api/auth/register
       const result = await registerUser(data.email, data.password, data.full_name);
 
       if (!result.success) {
-        setApiError(result.error || "Failed to register account.");
+        if (result.details) {
+          let hasFieldErrors = false;
+          for (const [field, rawMsg] of Object.entries(result.details)) {
+            const msg = Array.isArray(rawMsg) ? rawMsg[0] : String(rawMsg);
+            if (
+              field === "email" ||
+              field === "full_name" ||
+              field === "password" ||
+              field === "confirm_password"
+            ) {
+              setError(field as keyof RegisterFormData, {
+                type: "server",
+                message: msg,
+              });
+              hasFieldErrors = true;
+            }
+          }
+          if (!hasFieldErrors) {
+            setApiError(result.error || "Failed to register account.");
+          }
+        } else {
+          setApiError(result.error || "Failed to register account.");
+        }
         setIsSubmitting(false);
         return;
       }
@@ -55,6 +84,14 @@ export default function RegisterPage() {
       setIsSubmitting(false);
     }
   };
+
+  if (isLoading || user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <LoadingState message="Verifying security authorization..." />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 bg-background relative overflow-hidden">

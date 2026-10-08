@@ -270,12 +270,13 @@ export default function ProfilePage() {
 
   const initials = user?.full_name
     ? user.full_name
-        .split(" ")
+        .trim()
+        .split(/\s+/)
         .map((n) => n[0])
         .join("")
         .substring(0, 2)
         .toUpperCase()
-    : "DA";
+    : (user?.email ? user.email.substring(0, 2).toUpperCase() : "U");
 
   const handleLogout = async () => {
     await logout();
@@ -372,11 +373,11 @@ export default function ProfilePage() {
                 </Avatar>
                 <div className="space-y-1">
                   <h3 className="font-mono text-lg font-bold text-white">
-                    {user?.full_name || "Defense Analyst"}
+                    {user?.full_name || "User"}
                   </h3>
                   <p className="text-xs text-muted-foreground font-mono flex items-center gap-1.5">
                     <Mail className="w-3.5 h-3.5 text-slate-400" />
-                    {user?.email || "analyst@garuda.defense"}
+                    {user?.email || ""}
                   </p>
                   <div className="pt-1 flex items-center gap-2">
                     <Badge variant="cyan" className="text-[10px]">

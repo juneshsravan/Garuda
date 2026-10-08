@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
 import { useAuth } from "@/lib/auth";
@@ -16,14 +16,25 @@ export default function AppLayout({
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Route guard: if logged out, redirect to /login
-  if (!isLoading && !user) {
-    if (typeof window !== "undefined") {
+  // Route guard: WAIT for session check before redirecting
+  useEffect(() => {
+    if (!isLoading && !user) {
       router.push("/login");
     }
+  }, [isLoading, user, router]);
+
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <LoadingState message="Checking security authorization..." />
+        <LoadingState message="Verifying security session..." />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <LoadingState message="Redirecting to security login..." />
       </div>
     );
   }

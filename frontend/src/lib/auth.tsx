@@ -1,110 +1,149 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { User } from "@/types/auth";
+import { authApi, setAccessToken, ApiClientError } from "@/lib/api-client";
+
+export interface AuthResult {
+  success: boolean;
+  user?: User;
+  error?: string;
+  code?: string;
+  details?: Record<string, string[] | string>;
+}
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  register: (email: string, password: string, fullName: string) => Promise<{ success: boolean; error?: string }>;
+  login: (email: string, password: string) => Promise<AuthResult>;
+  register: (email: string, password: string, fullName: string) => Promise<AuthResult>;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// MOCK: Temporary mock user for UI testing until backend auth is connected
-const MOCK_INITIAL_USER: User = {
-  id: "usr_mock_001",
-  email: "analyst@garuda.defense",
-  full_name: "Defense Analyst",
-  role: "user",
-  is_active: true,
-  email_verified_at: null,
-  created_at: "2026-10-01T00:00:00Z",
-};
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  // MOCK: Default to mock user so that app shell pages can be previewed immediately,
-  // while allowing easy toggle via logout / login in the browser.
-  const [user, setUser] = useState<User | null>(MOCK_INITIAL_USER);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
+  // Restore session on page load per ARCHITECTURE Section 6:
+  // POST /api/auth/refresh to rotate/restore session, then GET /api/auth/me for user details.
   useEffect(() => {
-    // Check local storage / session state if saved
-    const savedUser = typeof window !== "undefined" ? localStorage.getItem("garuda_mock_user") : null;
-    if (savedUser) {
+    let isMounted = true;
+
+    async function restoreSession() {
       try {
-        setUser(JSON.parse(savedUser));
+        const refreshRes = await authApi.refresh();
+        if (refreshRes.access_token) {
+          setAccessToken(refreshRes.access_token);
+          const meRes = await authApi.getMe();
+          if (isMounted) {
+            setUser(meRes.user);
+          }
+        }
       } catch {
-        setUser(MOCK_INITIAL_USER); // MOCK
+        // No valid session or expired refresh token; keep user as null
+        setAccessToken(null);
+        if (isMounted) {
+          setUser(null);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
+    }
+
+    restoreSession();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const login = useCallback(async (email: string, password: string): Promise<AuthResult> => {
+    try {
+      const res = await authApi.login({ email, password });
+      setAccessToken(res.access_token);
+      setUser(res.user);
+      return { success: true, user: res.user };
+    } catch (err: unknown) {
+      if (err instanceof ApiClientError) {
+        return {
+          success: false,
+          error: err.message,
+          code: err.code,
+          details: err.details,
+        };
+      }
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : "Failed to authenticate.",
+      };
     }
   }, []);
 
-  const login = async (email: string, password: string) => {
-    setIsLoading(true);
-    // MOCK: Simulating API response against ARCHITECTURE Section 6 contract
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    setIsLoading(false);
+  const register = useCallback(
+    async (email: string, password: string, fullName: string): Promise<AuthResult> => {
+      try {
+        const res = await authApi.register({
+          email,
+          password,
+          full_name: fullName,
+        });
+        setAccessToken(res.access_token);
+        setUser(res.user);
+        return { success: true, user: res.user };
+      } catch (err: unknown) {
+        if (err instanceof ApiClientError) {
+          return {
+            success: false,
+            error: err.message,
+            code: err.code,
+            details: err.details,
+          };
+        }
+        return {
+          success: false,
+          error: err instanceof Error ? err.message : "Failed to register account.",
+        };
+      }
+    },
+    []
+  );
 
-    if (password.length < 8) {
-      return { success: false, error: "Password must be at least 8 characters." };
+  const logout = useCallback(async (): Promise<void> => {
+    try {
+      await authApi.logout();
+    } catch {
+      // Ignore network errors on logout
+    } finally {
+      setAccessToken(null);
+      setUser(null);
     }
+  }, []);
 
-    const newUser: User = {
-      id: "usr_mock_" + Math.random().toString(36).substring(7),
-      email,
-      full_name: email.split("@")[0].toUpperCase() || "Security Officer",
-      role: "user",
-      is_active: true,
-      email_verified_at: new Date().toISOString(),
-      created_at: new Date().toISOString(),
-    };
-
-    setUser(newUser);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("garuda_mock_user", JSON.stringify(newUser));
+  const refreshUser = useCallback(async (): Promise<void> => {
+    try {
+      const meRes = await authApi.getMe();
+      setUser(meRes.user);
+    } catch {
+      // Ignore
     }
-    return { success: true };
-  };
-
-  const register = async (email: string, password: string, fullName: string) => {
-    setIsLoading(true);
-    // MOCK: Simulating API response against ARCHITECTURE Section 6 contract
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    setIsLoading(false);
-
-    if (password.length < 8) {
-      return { success: false, error: "Password must be at least 8 characters." };
-    }
-
-    const newUser: User = {
-      id: "usr_mock_" + Math.random().toString(36).substring(7),
-      email,
-      full_name: fullName,
-      role: "user",
-      is_active: true,
-      email_verified_at: null,
-      created_at: new Date().toISOString(),
-    };
-
-    setUser(newUser);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("garuda_mock_user", JSON.stringify(newUser));
-    }
-    return { success: true };
-  };
-
-  const logout = async () => {
-    setUser(null);
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("garuda_mock_user");
-    }
-  };
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isLoading,
+        login,
+        register,
+        logout,
+        refreshUser,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
