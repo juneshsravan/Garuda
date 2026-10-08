@@ -1,0 +1,41 @@
+version: "1.0"
+dataset: "regression_real"
+description: "Real-world genuine public advisories and regression tests including RBI Kehta Hai"
+
+cases:
+  # --- GENUINE RBI MESSAGES ---
+  - id: 1
+    type: "safe"
+    expected_level: ["likely_safe"]
+    expected_signals: ["LEGIT_OFFICIAL_DOMAIN", "LEGIT_OFFICIAL_CHANNEL_ADVICE"]
+    text: "RBI Kehta Hai: Never share your OTP, PIN, CVV, or passwords with anyone. For queries, visit your bank branch or https://rbikehtahai.rbi.org.in/"
+
+  - id: 2
+    type: "safe"
+    expected_level: ["likely_safe"]
+    expected_signals: ["LEGIT_OFFICIAL_DOMAIN", "LEGIT_OFFICIAL_CHANNEL_ADVICE"]
+    text: "RBI Kehta Hai: Do not click on unknown links or share confidential banking details. Visit your bank branch or https://rbikehtahai.rbi.org.in/"
+
+  - id: 3
+    type: "safe"
+    expected_level: ["likely_safe"]
+    expected_signals: ["LEGIT_OFFICIAL_DOMAIN", "LEGIT_OFFICIAL_CHANNEL_ADVICE"]
+    text: "आरबीआई कहता है: सतर्क रहें! कभी भी अपना ओटीपी या पासवर्ड साझा न करें। अपनी बैंक शाखा जाएं या https://rbikehtahai.rbi.org.in/ देखें।"
+
+  - id: 4
+    type: "safe"
+    expected_level: ["likely_safe"]
+    expected_signals: ["LEGIT_OFFICIAL_DOMAIN", "LEGIT_OFFICIAL_CHANNEL_ADVICE"]
+    text: "ఆర్బీఐ చెబుతోంది: మీ ఓటీపీ లేదా పిన్ ఎవరితోనూ పంచుకోవద్దు. సహాయం కోసం మీ బ్యాంకు శాఖను సందర్శించండి లేదా https://rbikehtahai.rbi.org.in/ చూడండి."
+
+  - id: 5
+    type: "safe"
+    expected_level: ["likely_safe"]
+    expected_signals: ["LEGIT_OFFICIAL_DOMAIN", "LEGIT_OFFICIAL_CHANNEL_ADVICE"]
+    text: "RBI kehta hai: Kisi bhi anjan offer par vishwas na kare. Apni bank branch jayein ya https://rbikehtahai.rbi.org.in/ dekhe."
+
+  - id: 6
+    type: "safe"
+    expected_level: ["likely_safe"]
+    expected_signals: ["LEGIT_OFFICIAL_DOMAIN", "LEGIT_OFFICIAL_CHANNEL_ADVICE"]
+    text: "RBI antundi: Mosala barina padakandi. Evarithonu credentials share cheyyakandi. Sahayam kosam mee bank shakhanu sandarsinchandi leda https://rbikehtahai.rbi.org.in/ chudandi."

@@ -52,9 +52,13 @@ def calculate_score(
     l_discount = min(1.0 - prod_not_l, 0.80)
 
     # 3. Anti-gaming enforcement:
-    # If high severity threat is present, scammers cannot bypass risk by copying genuine safety text
+    # No legitimacy discount if there is a credential request, fee demand, deceptive URL, or high/critical threat
     anti_gaming_applied = False
-    if has_high_severity:
+    has_cred_request = any("CRED" in ind.code for ind in risk_indicators)
+    has_fee_demand = any("FEE" in ind.code for ind in risk_indicators)
+    has_deceptive_url = any(ind.code == "DECEPTIVE_URL_DETECTED" for ind in risk_indicators)
+
+    if has_high_severity or has_cred_request or has_fee_demand or has_deceptive_url:
         l_discount = 0.0
         anti_gaming_applied = True
 

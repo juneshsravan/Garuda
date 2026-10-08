@@ -18,7 +18,8 @@ SUSPICIOUS_TLDS = {
 
 INDIAN_BRANDS_KEYWORDS = {
     "sbi", "hdfc", "icici", "axis", "pnb", "yono", "paytm", "phonepe", "gpay", "bhim",
-    "incometax", "uidai", "aadhaar", "digilocker", "parivahan", "netflix", "amazon", "flipkart"
+    "incometax", "uidai", "aadhaar", "digilocker", "parivahan", "netflix", "amazon", "flipkart",
+    "rbi", "npci", "sebi", "cybercrime"
 }
 
 
@@ -37,7 +38,8 @@ OFFICIAL_DOMAINS = {
     "sbi.co.in", "onlinesbi.sbi", "hdfcbank.com", "icicibank.com", "axisbank.com", "pnbindia.in",
     "paytm.com", "phonepe.com", "airtel.in", "jio.com", "uidai.gov.in", "incometax.gov.in",
     "digilocker.gov.in", "parivahan.gov.in", "swiggy.com", "zomato.com", "flipkart.com",
-    "amazon.in", "amazon.com", "netflix.com"
+    "amazon.in", "amazon.com", "netflix.com",
+    "rbi.org.in", "npci.org.in", "sebi.gov.in", "cybercrime.gov.in",
 }
 
 

@@ -14,6 +14,7 @@ from app.engine.extractors.upi import (
     is_personal_handle,
     parse_upi_uri,
 )
+from app.engine.extractors.urls import is_official_domain
 from app.engine.scoring import calculate_score
 
 # Common reward, cashback, and refund keywords used in QR collect scams
@@ -106,7 +107,7 @@ def analyze_url_payload(url_str: str) -> dict[str, Any]:
         )
 
     # Static heuristic 3: Genuine official banking or government domain
-    if hostname in ("sbi.co.in", "onlinesbi.sbi", "hdfcbank.com", "icicibank.com", "cybercrime.gov.in", "incometax.gov.in"):
+    if is_official_domain(hostname):
         legitimacy.append(
             LegitimacySignal(
                 code="LEGIT_OFFICIAL_DOMAIN",

@@ -94,14 +94,44 @@ LEGITIMACY_RULES = [
     },
     {
         "code": "LEGIT_OFFICIAL_CHANNEL_ADVICE",
-        "label": "Directs actions strictly through verified official portal or app",
+        "label": "Directs actions strictly through verified official branch, portal, or app",
         "weight": 0.55,
         "patterns": [
+            # English
             r"\bpay\s+through\s+the\s+official\s+(?:college\s+portal|website|app)\b",
             r"\bpay\s+via\s+the\s+official\s+(?:app|website)\b",
             r"\brecharge\s+via\s+the\s+(?:myjio|airtel|official)\s+app\b",
             r"\btrack\s+status\s+on\s+[a-z0-9.-]+\.gov\.in\b",
             r"\btrack\s+status\s+on\b",
+            r"\b(?:visit|contact|reach|go\s+to)\s+(?:your|the|nearest|our)?\s*(?:own\s+)?(?:bank\s+)?branch\b",
+            r"\bvisit\s+(?:your\s+)?home\s+branch\b",
+            r"\b(?:visit|check|access)\s+(?:the\s+|our\s+|your\s+)?official\s+(?:website|portal|app|mobile\s+app)\b",
+            r"\bcontact\s+(?:your\s+)?bank\b",
+            r"\bthrough\s+(?:the\s+|our\s+)?official\s+(?:website|portal|app)\b",
+            # Hindi (Devanagari)
+            r"अपनी\s+बैंक\s+शाखा\s+जाएं",
+            r"(?:अपनी|निकटतम|नजदीकी|गृह)?\s*(?:बैंक\s+)?शाखा\s+(?:जाएं|जाओ|में\s+संपर्क\s+करें|से\s+संपर्क\s+करें|पहुंचें|विजिट\s+करें)",
+            r"बैंक\s+शाखा\s+(?:जाएं|जाओ|में\s+जाएं|संपर्क\s+करें)",
+            r"शाखा\s+में\s+संपर्क\s+करें",
+            r"आधिकारिक\s+(?:वेबसाइट|पोर्टल|ऐप|एप)",
+            r"अपनी\s+बैंक\s+शाखा",
+            # Telugu (Telugu script)
+            r"మీ\s+బ్యాంకు\s+శాఖను\s+సందర్శించండి",
+            r"(?:మీ\s+)?(?:బ్యాంకు|బ్యాంక్)\s+శాఖను\s+(?:సందర్శించండి|సంప్రదించండి)",
+            r"(?:మీ\s+)?(?:బ్యాంకు|బ్యాంక్)\s+శాఖకు\s*(?:వెళ్ళండి|వెళ్లండి|సందర్శించండి)",
+            r"సమీప\s+(?:బ్యాంకు|బ్యాంక్)\s+శాఖ",
+            r"అధికారిక\s+(?:వెబ్‌సైట్|వెబ్\s*సైట్|పోర్టల్|యాప్)",
+            r"మీ\s+బ్యాంకు\s+శాఖ",
+            # Romanized Telugu
+            r"\b(?:mee\s+)?(?:bank\s+)?(?:shakhanu|branch\s+nu|branch\s+ki)\s+(?:sandarsinchandi|vellandi|sampradinchandi)\b",
+            r"\b(?:bank\s+)?branch\s+(?:ki\s+vellandi|visit\s+cheyandi|ni\s+sampradinchandi)\b",
+            r"\badhikarika\s+(?:website|portal|app)\b",
+            r"\bofficial\s+(?:website|app)\s*(?:chudandi|visit\s+cheyandi|lo\s+chudandi)\b",
+            # Hinglish (Romanized Hindi)
+            r"\bapni\s+(?:bank\s+)?(?:shakha|branch)\s+(?:jaye|jayein|jao|me\s+jaye|visit\s+kare|se\s+sampark\s+kare)\b",
+            r"\b(?:bank\s+)?branch\s+(?:jaye|jayein|jao|visit\s+kare|me\s+sampark\s+kare)\b",
+            r"\bapne\s+bank\s+(?:se\s+sampark\s+kare|branch\s+jaye|branch\s+visit\s+kare)\b",
+            r"\bofficial\s+(?:website|portal|app)\s+(?:par\s+jaye|check\s+kare|se\s+kare|visit\s+kare|dekhe)\b",
         ],
     },
     {
