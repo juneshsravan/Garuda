@@ -6,7 +6,7 @@ from pathlib import Path
 # Ensure backend root is on sys.path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
-SUPPORTED_LANGUAGES = ["en", "hi", "te", "te_rom", "hinglish"]
+SUPPORTED_LANGUAGES = ["en", "hi", "te", "te_rom", "hinglish", "kn", "ta", "ml"]
 
 
 def test_lexicon_parity():
@@ -20,8 +20,16 @@ def test_lexicon_parity():
     missing_report = []
 
     print("=" * 80)
-    print("LEXICON PARITY VERIFICATION")
+    print("LEXICON PARITY VERIFICATION (ALL 8 LANGUAGE FORMS)")
     print("=" * 80)
+
+    indic_ranges = {
+        "hi": ("\u0900", "\u097f"),
+        "te": ("\u0c00", "\u0c7f"),
+        "kn": ("\u0c80", "\u0cff"),
+        "ta": ("\u0b80", "\u0bff"),
+        "ml": ("\u0d00", "\u0d7f"),
+    }
 
     for concept_name, lang_dict in concepts.items():
         if not isinstance(lang_dict, dict):
@@ -37,6 +45,16 @@ def test_lexicon_parity():
                 valid_terms = [t for t in terms if isinstance(t, str) and t.strip()]
                 if len(valid_terms) == 0:
                     missing_report.append(f"Concept '{concept_name}' has empty term list for '{lang}'.")
+                
+                # For Kannada, Tamil, Malayalam: verify both native script and romanized terms are present
+                if lang in ("kn", "ta", "ml"):
+                    start_ch, end_ch = indic_ranges[lang]
+                    has_native = any(any(start_ch <= c <= end_ch for c in t) for t in valid_terms)
+                    has_roman = any(all(c.isascii() for c in t if c.isalpha()) and any(c.isalpha() for c in t) for t in valid_terms)
+                    if not has_native:
+                        missing_report.append(f"Concept '{concept_name}' for '{lang}' is missing native script terms.")
+                    if not has_roman:
+                        missing_report.append(f"Concept '{concept_name}' for '{lang}' is missing romanized terms.")
 
     if missing_report:
         print("\n[FAIL] Lexicon Parity Gaps Detected:")
@@ -45,13 +63,14 @@ def test_lexicon_parity():
         print("=" * 80)
         assert False, f"Lexicon parity failed with {len(missing_report)} gaps!"
     else:
-        print(f"[PASS] All {len(concepts)} concepts have complete parity across all 5 languages:")
+        print(f"[PASS] All {len(concepts)} concepts have complete parity across all 8 language forms:")
         print(f"       {', '.join(SUPPORTED_LANGUAGES)}")
         for concept_name, lang_dict in concepts.items():
             counts = {lang: len(lang_dict[lang]) for lang in SUPPORTED_LANGUAGES}
             print(f"  - {concept_name:<24}: {counts}")
         print("=" * 80)
         return True
+
 
 
 if __name__ == "__main__":

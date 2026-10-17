@@ -53,6 +53,12 @@ RULES = [
             r"\botp\s+(?:saajha|saajhaa|bhejo|batao|share)\s+(?:karein|karo|kijiye)\b",
             r"अपना\s+otp\s+साझा\s+करें",
             r"మీ\s+otp\s+చెప్పండి",
+            r"ನಿಮ್ಮ\s+ಒಟಿಪಿ\s+ಹಂಚಿಕೊಳ್ಳಿ",
+            r"உங்கள்\s+ஓடிபியை\s+பகிரவும்",
+            r"നിങ്ങളുടെ\s+ഒടിപി\s+പങ്കിടുക",
+            r"\b(?:nimma\s+)?otp\s+(?:hanchikolli|share\s+maadi)\b",
+            r"\b(?:ungal\s+)?otp\s+(?:pagiravum|share\s+seiyavum)\b",
+            r"\b(?:ningalude\s+)?otp\s+(?:pankiduka|share\s+cheyyuka)\b",
         ],
         "check_negation": True,
     },
@@ -66,6 +72,12 @@ RULES = [
             r"\bmee\s+upi\s+pin\s+enter\s+cheyandi\b",
             r"\bpin\s+enter\s+karein\s+paise\s+paane\b",
             r"\benter\s+(?:your\s+)?pin\s+to\s+receive\s+it\b",
+            r"ನಿಮ್ಮ\s+ಪಿನ್\s+ನಮೂದಿಸಿ",
+            r"உங்கள்\s+பினை\s+உள்ளிடவும்",
+            r"നിങ്ങളുടെ\s+പിൻ\s+നൽകുക",
+            r"\b(?:nimma\s+)?upi\s+pin\s+enter\s+maadi\b",
+            r"\b(?:ungal\s+)?upi\s+pin\s+enter\s+seiyavum\b",
+            r"\b(?:ningalude\s+)?upi\s+pin\s+enter\s+cheyyuka\b",
         ],
     },
     {
@@ -312,12 +324,43 @@ RULES = [
             r"\bventane\b",
             r"\bturant\b",
             r"\bn0w\b",
+            r"ತಕ್ಷಣ",
+            r"ಈಗಲೇ",
+            r"ಕೂಡಲೇ",
+            r"\bthakshana\b",
+            r"\beegale\b",
+            r"\bkoodale\b",
+            r"உடனடியாக",
+            r"இப்போதே",
+            r"உடனே",
+            r"\budanadiyaga\b",
+            r"\bippothe\b",
+            r"\budane\b",
+            r"ഉടൻ",
+            r"ഉടനെ",
+            r"ഇപ്പോൾത്തന്നെ",
+            r"\budan\b",
+            r"\budane\b",
+            r"\bippolthanne\b",
         ],
     },
 ]
 
 
-NEGATION_WORDS = ["do not", "don't", "dont", "never", "not", "mat", "na", "వద్దు", "లేదు", "नहीं", "मत"]
+NEGATION_WORDS = [
+    # English
+    "do not", "don't", "dont", "never", "not", "mat", "na",
+    # Hindi / Hinglish
+    "kisi ko nahi", "kisi ko mat", "नहीं", "मत", "ना", "साझा न करें",
+    # Telugu
+    "వద్దు", "లేదు", "చెప్పకండి",
+    # Kannada
+    "ಬೇಡಿ", "ಹಂಚಿಕೊಳ್ಳಬೇಡಿ", "ಮಾಡಬೇಡಿ", "ಇಲ್ಲ", "bedi", "hanchikollabedi", "madabedi",
+    # Tamil
+    "வேண்டாம்", "பகிராதீர்கள்", "செய்யாதீர்கள்", "இல்லை", "vendam", "pagiradheergal", "seiyatheergal",
+    # Malayalam
+    "അരുത്", "പങ്കിടരുത്", "ചെയ്യരുത്", "ഇല്ല", "aruthu", "pankidaruthu", "cheyyaruthu",
+]
 
 
 def is_negated_match(text: str, match_start: int) -> bool:

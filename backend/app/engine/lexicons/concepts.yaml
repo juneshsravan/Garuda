@@ -1,560 +1,1377 @@
-version: "2.1"
-description: "GARUDA multilingual concept lexicons across English, Hindi, Telugu script, Romanized Telugu, and Hinglish with colloquial stems and expanded asset domains"
-
+version: '2.1'
+description: GARUDA multilingual concept lexicons across English, Hindi, Telugu script,
+  Romanized Telugu, and Hinglish with colloquial stems and expanded asset domains
 ASSET:
   en:
-    - "account"
-    - "bank account"
-    - "yono account"
-    - "yono"
-    - "wallet"
-    - "paytm wallet"
-    - "upi"
-    - "card"
-    - "credit card"
-    - "debit card"
-    - "sim"
-    - "sim card"
-    - "pan"
-    - "pan card"
-    - "aadhaar"
-    - "aadhaar card"
-    - "kyc"
-    - "electricity"
-    - "electricity connection"
-    - "power connection"
-    - "power"
-    - "current"
-    - "light"
-    - "gas connection"
-    - "parcel"
-    - "courier"
-    - "package"
-    - "mobile number"
-    - "phone number"
-    - "profile"
-    - "payment"
-    - "loan"
-    - "credit"
-    - "limit"
-    - "policy"
-    - "insurance"
-    - "emi"
+  - account
+  - bank account
+  - yono account
+  - yono
+  - wallet
+  - paytm wallet
+  - upi
+  - card
+  - credit card
+  - debit card
+  - sim
+  - sim card
+  - pan
+  - pan card
+  - aadhaar
+  - aadhaar card
+  - kyc
+  - electricity
+  - electricity connection
+  - power connection
+  - power
+  - current
+  - light
+  - gas connection
+  - parcel
+  - courier
+  - package
+  - mobile number
+  - phone number
+  - profile
+  - payment
+  - loan
+  - credit
+  - limit
+  - policy
+  - insurance
+  - emi
   hi:
-    - "खाता"
-    - "बैंक खाता"
-    - "वॉलेट"
-    - "सिम"
-    - "सिम कार्ड"
-    - "पैन"
-    - "पैन कार्ड"
-    - "आधार"
-    - "केवाईसी"
-    - "बिजली"
-    - "बिजली कनेक्शन"
-    - "पार्सल"
-    - "कूरियर"
-    - "मोबाइल नंबर"
-    - "फोन नंबर"
-    - "लोन"
-    - "क्रेडिट"
-    - "लिमिट"
-    - "पॉलिसी"
-    - "बीमा"
-    - "ईएमआई"
+  - खाता
+  - बैंक खाता
+  - वॉलेट
+  - सिम
+  - सिम कार्ड
+  - पैन
+  - पैन कार्ड
+  - आधार
+  - केवाईसी
+  - बिजली
+  - बिजली कनेक्शन
+  - पार्सल
+  - कूरियर
+  - मोबाइल नंबर
+  - फोन नंबर
+  - लोन
+  - क्रेडिट
+  - लिमिट
+  - पॉलिसी
+  - बीमा
+  - ईएमआई
   te:
-    - "ఖాతా"
-    - "బ్యాంక్ ఖాతా"
-    - "వాలెట్"
-    - "సిమ్"
-    - "పాన్"
-    - "పాన్ కార్డు"
-    - "ఆధార్"
-    - "విద్యుత్"
-    - "కరెంట్"
-    - "కరెంటు"
-    - "లైట్"
-    - "నంబర్"
-    - "పార్శిల్"
-    - "రుణం"
-    - "లోన్"
-    - "క్రెడిట్"
-    - "పరిమితి"
-    - "పాలసీ"
-    - "భీమా"
-    - "ఈఎంఐ"
+  - ఖాతా
+  - బ్యాంక్ ఖాతా
+  - వాలెట్
+  - సిమ్
+  - పాన్
+  - పాన్ కార్డు
+  - ఆధార్
+  - విద్యుత్
+  - కరెంట్
+  - కరెంటు
+  - లైట్
+  - నంబర్
+  - పార్శిల్
+  - రుణం
+  - లోన్
+  - క్రెడిట్
+  - పరిమితి
+  - పాలసీ
+  - భీమా
+  - ఈఎంఐ
   te_rom:
-    - "khaatha"
-    - "bank khaatha"
-    - "pan card"
-    - "sim card"
-    - "aadhaar"
-    - "bijli connection"
-    - "current"
-    - "karentu"
-    - "wallet"
-    - "parcel"
-    - "loan"
-    - "credit"
-    - "limit"
-    - "policy"
-    - "insurance"
-    - "emi"
+  - khaatha
+  - bank khaatha
+  - pan card
+  - sim card
+  - aadhaar
+  - bijli connection
+  - current
+  - karentu
+  - wallet
+  - parcel
+  - loan
+  - credit
+  - limit
+  - policy
+  - insurance
+  - emi
   hinglish:
-    - "khata"
-    - "bank khata"
-    - "wallet"
-    - "sim"
-    - "sim card"
-    - "pan"
-    - "aadhaar"
-    - "bijli"
-    - "bijli connection"
-    - "parcel"
-    - "number"
-    - "loan"
-    - "credit"
-    - "limit"
-    - "policy"
-    - "insurance"
-    - "emi"
-
+  - khata
+  - bank khata
+  - wallet
+  - sim
+  - sim card
+  - pan
+  - aadhaar
+  - bijli
+  - bijli connection
+  - parcel
+  - number
+  - loan
+  - credit
+  - limit
+  - policy
+  - insurance
+  - emi
+  kn:
+  - ಖಾತೆ
+  - ಬ್ಯಾಂಕ್ ಖಾತೆ
+  - ವ್ಯಾಲೆಟ್
+  - ಸಿಮ್
+  - ಸಿಮ್ ಕಾರ್ಡ್
+  - ಪ್ಯಾನ್
+  - ಪ್ಯಾನ್ ಕಾರ್ಡ್
+  - ಆಧಾರ್
+  - ವಿದ್ಯುತ್
+  - ಕರೆಂಟ್
+  - ಲೈಟ್
+  - ಪಾರ್ಸಲ್
+  - ಕೊರಿಯರ್
+  - ಮೊಬೈಲ್ ನಂಬರ್
+  - ಸಾಲ
+  - ಕ್ರೆಡಿಟ್
+  - ಮಿತಿ
+  - ಪಾಲಿಸಿ
+  - ವಿಮೆ
+  - ಇಎಂಐ
+  - khaathe
+  - bank khaathe
+  - wallet
+  - sim
+  - sim card
+  - pan card
+  - aadhaar
+  - vidyut
+  - karentu
+  - current
+  - parcel
+  - courier
+  - mobile number
+  - saala
+  - credit
+  - limit
+  - policy
+  - vime
+  - emi
+  kn_rom:
+  - khaathe
+  - bank khaathe
+  - wallet
+  - sim
+  - sim card
+  - pan card
+  - aadhaar
+  - vidyut
+  - karentu
+  - current
+  - parcel
+  - courier
+  - mobile number
+  - saala
+  - credit
+  - limit
+  - policy
+  - vime
+  - emi
+  ta:
+  - கணக்கு
+  - வங்கி கணக்கு
+  - வாலெட்
+  - சிம்
+  - சிம் கார்டு
+  - பான்
+  - பான் கார்டு
+  - ஆதார்
+  - மின்சாரம்
+  - கரண்ட்
+  - பார்சல்
+  - கூரியர்
+  - மொபைல் எண்
+  - கடன்
+  - கிரெடிட்
+  - வரம்பு
+  - பாலிசி
+  - காப்பீடு
+  - இஎம்ஐ
+  - kanakku
+  - vangi kanakku
+  - wallet
+  - sim
+  - sim card
+  - pan card
+  - aadhaar
+  - minsaram
+  - current
+  - paarsal
+  - courier
+  - mobile number
+  - kadan
+  - credit
+  - limit
+  - policy
+  - kaappedu
+  - emi
+  ta_rom:
+  - kanakku
+  - vangi kanakku
+  - wallet
+  - sim
+  - sim card
+  - pan card
+  - aadhaar
+  - minsaram
+  - current
+  - paarsal
+  - courier
+  - mobile number
+  - kadan
+  - credit
+  - limit
+  - policy
+  - kaappedu
+  - emi
+  ml:
+  - അക്കൗണ്ട്
+  - ബാങ്ക് അക്കൗണ്ട്
+  - വാലറ്റ്
+  - സിം
+  - സിം കാർഡ്
+  - പാൻ
+  - പാൻ കാർഡ്
+  - ആധാർ
+  - വൈദ്യുതി
+  - കറന്റ്
+  - പാഴ്സൽ
+  - കൊറിയർ
+  - മൊബൈൽ നമ്പർ
+  - വായ്പ
+  - ക്രെഡിറ്റ്
+  - പരിധി
+  - പോളിസി
+  - ഇൻഷുറൻസ്
+  - ഇഎംഐ
+  - akkanru
+  - bank akkanru
+  - wallet
+  - sim
+  - sim card
+  - pan card
+  - aadhaar
+  - vaidhyuthi
+  - current
+  - paarsal
+  - courier
+  - mobile number
+  - vaaypa
+  - credit
+  - limit
+  - policy
+  - insurance
+  - emi
+  ml_rom:
+  - akkanru
+  - bank akkanru
+  - wallet
+  - sim
+  - sim card
+  - pan card
+  - aadhaar
+  - vaidhyuthi
+  - current
+  - paarsal
+  - courier
+  - mobile number
+  - vaaypa
+  - credit
+  - limit
+  - policy
+  - insurance
+  - emi
 THREAT:
   en:
-    - "block"
-    - "blocked"
-    - "blocking"
-    - "suspend"
-    - "suspended"
-    - "suspension"
-    - "deactivate"
-    - "deactivated"
-    - "expire"
-    - "expired"
-    - "disconnect"
-    - "disconnected"
-    - "disconnection"
-    - "cut"
-    - "close"
-    - "closed"
-    - "freeze"
-    - "frozen"
-    - "hold"
-    - "stuck"
-    - "failed"
-    - "legal action"
-    - "arrest"
-    - "return"
-    - "returned"
-    - "illegal drugs"
-    - "money laundering"
-    - "bill was not updated"
-    - "cut at"
+  - block
+  - blocked
+  - blocking
+  - suspend
+  - suspended
+  - suspension
+  - deactivate
+  - deactivated
+  - expire
+  - expired
+  - disconnect
+  - disconnected
+  - disconnection
+  - cut
+  - close
+  - closed
+  - freeze
+  - frozen
+  - hold
+  - stuck
+  - failed
+  - legal action
+  - arrest
+  - return
+  - returned
+  - illegal drugs
+  - money laundering
+  - bill was not updated
+  - cut at
   hi:
-    - "ब्लॉक"
-    - "बंद"
-    - "बंद हो"
-    - "काट"
-    - "काट दिया"
-    - "काटा जाएगा"
-    - "रद्द"
-    - "गिरफ्तारी"
-    - "अरेस्ट"
-    - "कानूनी कार्रवाई"
-    - "रोक"
-    - "मनी लॉन्ड्रिंग"
+  - ब्लॉक
+  - बंद
+  - बंद हो
+  - काट
+  - काट दिया
+  - काटा जाएगा
+  - रद्द
+  - गिरफ्तारी
+  - अरेस्ट
+  - कानूनी कार्रवाई
+  - रोक
+  - मनी लॉन्ड्रिंग
   te:
-    - "బ్లాక్"
-    - "బ్లాక్ అవు"
-    - "రద్దు"
-    - "నిలిపివేయబడుతుంది"
-    - "ఆపివేయబడుతుంది"
-    - "మూసివేయబడుతుంది"
-    - "కట్ చే"
-    - "కట్ చేయబడుతుంది"
-    - "కట్ చేస్తాం"
-    - "అరెస్ట్"
-    - "ఆగిపో"
+  - బ్లాక్
+  - బ్లాక్ అవు
+  - రద్దు
+  - నిలిపివేయబడుతుంది
+  - ఆపివేయబడుతుంది
+  - మూసివేయబడుతుంది
+  - కట్ చే
+  - కట్ చేయబడుతుంది
+  - కట్ చేస్తాం
+  - అరెస్ట్
+  - ఆగిపో
   te_rom:
-    - "block ayyindi"
-    - "block"
-    - "aagipotundi"
-    - "aapi vestaru"
-    - "close"
-    - "cut chestam"
+  - block ayyindi
+  - block
+  - aagipotundi
+  - aapi vestaru
+  - close
+  - cut chestam
   hinglish:
-    - "block ho jayega"
-    - "band ho jayega"
-    - "band ho"
-    - "band"
-    - "ruka hai"
-    - "ruka"
-    - "kat jayega"
-    - "return ho jayega"
-    - "arrest"
-
+  - block ho jayega
+  - band ho jayega
+  - band ho
+  - band
+  - ruka hai
+  - ruka
+  - kat jayega
+  - return ho jayega
+  - arrest
+  kn:
+  - ಬ್ಲಾಕ್
+  - ರದ್ದು
+  - ನಿಷ್ಕ್ರಿಯ
+  - ನಿಲ್ಲಿಸಲಾಗುವುದು
+  - ಮುಚ್ಚಲಾಗುವುದು
+  - ಕಟ್
+  - ಸ್ಥಗಿತ
+  - ಬಂಧನ
+  - ಅರೆಸ್ಟ್
+  - ಕಾನೂನು ಕ್ರಮ
+  - block
+  - block aagide
+  - raddhugollalapaduvudu
+  - nintuhoguvudu
+  - muchalpaduvudu
+  - cut aagide
+  - banndhana
+  - arrest
+  - kanoonu krama
+  kn_rom:
+  - block
+  - block aagide
+  - raddhugollalapaduvudu
+  - nintuhoguvudu
+  - muchalpaduvudu
+  - cut aagide
+  - banndhana
+  - arrest
+  - kanoonu krama
+  ta:
+  - பிளாக்
+  - முடக்கப்படும்
+  - ரத்து
+  - நிறுத்தப்படும்
+  - மூடப்படும்
+  - துண்டிக்கப்படும்
+  - முடக்கம்
+  - கைது
+  - சட்ட நடவடிக்கை
+  - block
+  - mudakkapadum
+  - rathu
+  - niruthappadum
+  - moodappadum
+  - thundikkapadum
+  - kaidhu
+  - arrest
+  - satta nadavadikkai
+  ta_rom:
+  - block
+  - mudakkapadum
+  - rathu
+  - niruthappadum
+  - moodappadum
+  - thundikkapadum
+  - kaidhu
+  - arrest
+  - satta nadavadikkai
+  ml:
+  - ബ്ലോക്ക്
+  - റദ്ദാക്കും
+  - നിർത്തിവയ്ക്കും
+  - അടച്ചുപൂട്ടും
+  - വിച്ഛേദിക്കും
+  - മരവിപ്പിച്ചു
+  - അറസ്റ്റ്
+  - നിയമ നടപടി
+  - block
+  - block aayi
+  - raddaakkum
+  - nirthivaykkum
+  - adachuputtum
+  - vichhedhikkum
+  - maravippichu
+  - arrest
+  - niyama nadapadi
+  ml_rom:
+  - block
+  - block aayi
+  - raddaakkum
+  - nirthivaykkum
+  - adachuputtum
+  - vichhedhikkum
+  - maravippichu
+  - arrest
+  - niyama nadapadi
 URGENCY:
   en:
-    - "today"
-    - "tonight"
-    - "now"
-    - "n0w"
-    - "immediately"
-    - "urgent"
-    - "urgently"
-    - "last chance"
-    - "before midnight"
-    - "limited seats"
-    - "within 24 hours"
-    - "in 2 hours"
-    - "in 24 hours"
-    - "2 ghante me"
-    - "tonight at 9:30"
-    - "at 9 pm"
-    - "will lapse tonight"
+  - today
+  - tonight
+  - now
+  - n0w
+  - immediately
+  - urgent
+  - urgently
+  - last chance
+  - before midnight
+  - limited seats
+  - within 24 hours
+  - in 2 hours
+  - in 24 hours
+  - 2 ghante me
+  - tonight at 9:30
+  - at 9 pm
+  - will lapse tonight
   hi:
-    - "आज"
-    - "आज रात"
-    - "तुरंत"
-    - "अभी"
-    - "जल्दी"
-    - "24 घंटे"
-    - "24 घंटे में"
-    - "तत्काल"
+  - आज
+  - आज रात
+  - तुरंत
+  - अभी
+  - जल्दी
+  - 24 घंटे
+  - 24 घंटे में
+  - तत्काल
   te:
-    - "ఈరోజు"
-    - "వెంటనే"
-    - "ఇప్పుడే"
-    - "త్వరగా"
-    - "ఈ రాత్రి"
-    - "24 గంటల్లో"
+  - ఈరోజు
+  - వెంటనే
+  - ఇప్పుడే
+  - త్వరగా
+  - ఈ రాత్రి
+  - 24 గంటల్లో
   te_rom:
-    - "ee roju"
-    - "ventane"
-    - "ippude"
-    - "tvaraga"
+  - ee roju
+  - ventane
+  - ippude
+  - tvaraga
   hinglish:
-    - "aaj"
-    - "aaj raat"
-    - "turant"
-    - "abhi"
-    - "jaldi"
-    - "2 ghante me"
-    - "24 ghante me"
-
+  - aaj
+  - aaj raat
+  - turant
+  - abhi
+  - jaldi
+  - 2 ghante me
+  - 24 ghante me
+  kn:
+  - ಇಂದು
+  - ಇವತ್ತು
+  - ತಕ್ಷಣ
+  - ಈಗಲೇ
+  - ಕೂಡಲೇ
+  - ಬೇಗ
+  - ಈ ರಾತ್ರಿ
+  - 24 ಗಂಟೆಗಳಲ್ಲಿ
+  - indu
+  - ivatte
+  - thakshana
+  - eegale
+  - koodale
+  - bega
+  - ee raathri
+  - 24 ghantegalalli
+  kn_rom:
+  - indu
+  - ivatte
+  - thakshana
+  - eegale
+  - koodale
+  - bega
+  - ee raathri
+  - 24 ghantegalalli
+  ta:
+  - இன்று
+  - உடனடியாக
+  - இப்போதே
+  - உடனே
+  - விரைவில்
+  - இன்றிரவு
+  - 24 மணி நேரத்தில்
+  - inru
+  - inre
+  - udanadiyaga
+  - ippothe
+  - udane
+  - viraivil
+  - viraindhu
+  - intriravu
+  - 24 mani nerathil
+  ta_rom:
+  - inru
+  - inre
+  - udanadiyaga
+  - ippothe
+  - udane
+  - viraivil
+  - viraindhu
+  - intriravu
+  - 24 mani nerathil
+  ml:
+  - ഇന്ന്
+  - ഉടൻ
+  - ഉടനെ
+  - ഇപ്പോൾത്തന്നെ
+  - വേഗം
+  - ഇന്ന് രാത്രി
+  - 24 മണിക്കൂറിനുള്ളിൽ
+  - innu
+  - innum
+  - udan
+  - udane
+  - ippolthanne
+  - vegam
+  - innu raathri
+  - 24 manikkoorinullil
+  ml_rom:
+  - innu
+  - innum
+  - udan
+  - udane
+  - ippolthanne
+  - vegam
+  - innu raathri
+  - 24 manikkoorinullil
 REWARD:
   en:
-    - "won"
-    - "winner"
-    - "prize"
-    - "lottery"
-    - "lucky draw"
-    - "reward"
-    - "reward points"
-    - "cashback"
-    - "refund"
-    - "bonus"
-    - "gift"
-    - "congrats"
-    - "congratulations"
-    - "selected"
-    - "credit hoga"
+  - won
+  - winner
+  - prize
+  - lottery
+  - lucky draw
+  - reward
+  - reward points
+  - cashback
+  - refund
+  - bonus
+  - gift
+  - congrats
+  - congratulations
+  - selected
+  - credit hoga
   hi:
-    - "इनाम"
-    - "जीता"
-    - "जीते"
-    - "बधाई"
-    - "लॉटरी"
-    - "कैशबैक"
-    - "रिफंड"
-    - "पुरस्कार"
-    - "बोनस"
+  - इनाम
+  - जीता
+  - जीते
+  - बधाई
+  - लॉटरी
+  - कैशबैक
+  - रिफंड
+  - पुरस्कार
+  - बोनस
   te:
-    - "గెలుచుకున్నారు"
-    - "బహుమతి"
-    - "లాటరీ"
-    - "క్యాష్‌బ్యాక్"
-    - "అభినందనలు"
-    - "బోనస్"
+  - గెలుచుకున్నారు
+  - బహుమతి
+  - లాటరీ
+  - క్యాష్‌బ్యాక్
+  - అభినందనలు
+  - బోనస్
   te_rom:
-    - "vachindi"
-    - "gelicharu"
-    - "cashback"
-    - "lottery"
-    - "bahumathi"
-    - "congrats"
-    - "bonus"
+  - vachindi
+  - gelicharu
+  - cashback
+  - lottery
+  - bahumathi
+  - congrats
+  - bonus
   hinglish:
-    - "inaam"
-    - "jeeta"
-    - "badhai"
-    - "lottery"
-    - "cashback"
-    - "refund"
-    - "bonus"
-
+  - inaam
+  - jeeta
+  - badhai
+  - lottery
+  - cashback
+  - refund
+  - bonus
+  kn:
+  - ಗೆದ್ದಿದ್ದೀರಿ
+  - ಬಹುಮಾನ
+  - ಲಾಟರಿ
+  - ಕ್ಯಾಶ್‌ಬ್ಯಾಕ್
+  - ಅಭಿನಂದನೆಗಳು
+  - ಬೋನಸ್
+  - ಉಡುಗೊರೆ
+  - ಆಯ್ಕೆಯಾಗಿದ್ದೀರಿ
+  - geddidiri
+  - gelidiri
+  - bahumaana
+  - lottery
+  - cashback
+  - abhinandanegalu
+  - bonus
+  - udugore
+  - aaykeyagiddiri
+  - labhiside
+  kn_rom:
+  - geddidiri
+  - gelidiri
+  - bahumaana
+  - lottery
+  - cashback
+  - abhinandanegalu
+  - bonus
+  - udugore
+  - aaykeyagiddiri
+  - labhiside
+  ta:
+  - வெற்றி பெற்றுள்ளீர்கள்
+  - பரிசு
+  - லாட்டரி
+  - கேஷ்பேக்
+  - வாழ்த்துகள்
+  - போனஸ்
+  - பரிசுப் பொருள்
+  - தேர்ந்தெடுக்கப்பட்டுள்ளீர்கள்
+  - vetripettrirgal
+  - parisu
+  - lottery
+  - cashback
+  - vaazhthukkal
+  - bonus
+  - therntherukkappattulleerkal
+  - parisalippu
+  ta_rom:
+  - vetripettrirgal
+  - parisu
+  - lottery
+  - cashback
+  - vaazhthukkal
+  - bonus
+  - therntherukkappattulleerkal
+  - parisalippu
+  ml:
+  - വിജയിച്ചു
+  - സമ്മാനം
+  - ലോട്ടറി
+  - ക്യാഷ്ബാക്ക്
+  - അഭിനന്ദനങ്ങൾ
+  - ബോണസ്
+  - സമ്മാനങ്ങൾ
+  - തിരഞ്ഞെടുക്കപ്പെട്ടു
+  - vijayichu
+  - sammaanam
+  - lottery
+  - cashback
+  - abhinandanangal
+  - bonus
+  - labhichu
+  - thiranjedukkappettu
+  ml_rom:
+  - vijayichu
+  - sammaanam
+  - lottery
+  - cashback
+  - abhinandanangal
+  - bonus
+  - labhichu
+  - thiranjedukkappettu
 AUTHORITY:
   en:
-    - "customs"
-    - "mumbai customs"
-    - "police"
-    - "mumbai police"
-    - "cbi"
-    - "cbi officer"
-    - "cyber cell"
-    - "rbi"
-    - "trai"
-    - "income tax"
-    - "income tax dept"
-    - "electricity board"
-    - "court"
+  - customs
+  - mumbai customs
+  - police
+  - mumbai police
+  - cbi
+  - cbi officer
+  - cyber cell
+  - rbi
+  - trai
+  - income tax
+  - income tax dept
+  - electricity board
+  - court
   hi:
-    - "कस्टम्स"
-    - "कस्टम"
-    - "पुलिस"
-    - "मुंबई पुलिस"
-    - "सीबीआई"
-    - "आयकर"
-    - "आयकर विभाग"
+  - कस्टम्स
+  - कस्टम
+  - पुलिस
+  - मुंबई पुलिस
+  - सीबीआई
+  - आयकर
+  - आयकर विभाग
   te:
-    - "కస్టమ్స్"
-    - "పోలీస్"
-    - "ముంబై పోలీస్"
-    - "సిబిఐ"
+  - కస్టమ్స్
+  - పోలీస్
+  - ముంబై పోలీస్
+  - సిబిఐ
   te_rom:
-    - "police"
-    - "customs"
-    - "cbi"
-    - "income tax"
+  - police
+  - customs
+  - cbi
+  - income tax
   hinglish:
-    - "customs"
-    - "police"
-    - "mumbai police"
-    - "cbi"
-    - "income tax"
-
+  - customs
+  - police
+  - mumbai police
+  - cbi
+  - income tax
+  kn:
+  - ಕಸ್ಟಮ್ಸ್
+  - ಪೊಲೀಸ್
+  - ಸಿಬಿಐ
+  - ಆದಾಯ ತೆರಿಗೆ
+  - ಸೈಬರ್ ಕ್ರೈಮ್
+  - ನ್ಯಾಯಾಲಯ
+  - customs
+  - police
+  - cbi
+  - aadaya therige
+  - cyber crime
+  - court
+  kn_rom:
+  - customs
+  - police
+  - cbi
+  - aadaya therige
+  - cyber crime
+  - court
+  ta:
+  - சுங்கம்
+  - கஸ்டம்ஸ்
+  - காவல்துறை
+  - போலீஸ்
+  - சிபிஐ
+  - வருமான வரி
+  - சைபர் கிரைம்
+  - நீதிமன்றம்
+  - customs
+  - sungam
+  - kavalthurai
+  - police
+  - cbi
+  - varumana vari
+  - cyber crime
+  - court
+  ta_rom:
+  - customs
+  - sungam
+  - kavalthurai
+  - police
+  - cbi
+  - varumana vari
+  - cyber crime
+  - court
+  ml:
+  - കസ്റ്റംസ്
+  - പോലീസ്
+  - സിബിഐ
+  - ആദായ നികുതി
+  - സൈബർ ക്രൈം
+  - കോടതി
+  - customs
+  - police
+  - cbi
+  - aadaya nikuthi
+  - cyber crime
+  - kodathi
+  ml_rom:
+  - customs
+  - police
+  - cbi
+  - aadaya nikuthi
+  - cyber crime
+  - kodathi
 FEE_DEMAND:
   en:
-    - "processing fee"
-    - "processing charges"
-    - "joining fee"
-    - "joining charges"
-    - "registration fee"
-    - "registration charges"
-    - "security fee"
-    - "activation fee"
-    - "delivery fee"
-    - "delivery charges"
-    - "gst"
-    - "tax"
-    - "charges"
-    - "deposit"
-    - "redelivery fee"
-    - "release fee"
+  - processing fee
+  - processing charges
+  - joining fee
+  - joining charges
+  - registration fee
+  - registration charges
+  - security fee
+  - activation fee
+  - delivery fee
+  - delivery charges
+  - gst
+  - tax
+  - charges
+  - deposit
+  - redelivery fee
+  - release fee
   hi:
-    - "प्रोसेसिंग फीस"
-    - "प्रोसेसिंग चार्ज"
-    - "जॉइनिंग फीस"
-    - "रजिस्ट्रेशन फीस"
-    - "रजिस्ट्रेशन चार्ज"
-    - "डिलीवरी चार्ज"
-    - "फीस"
-    - "शुल्क"
-    - "चार्ज"
-    - "टैक्स"
-    - "फीस भरो"
-    - "जमा करें"
+  - प्रोसेसिंग फीस
+  - प्रोसेसिंग चार्ज
+  - जॉइनिंग फीस
+  - रजिस्ट्रेशन फीस
+  - रजिस्ट्रेशन चार्ज
+  - डिलीवरी चार्ज
+  - फीस
+  - शुल्क
+  - चार्ज
+  - टैक्स
+  - फीस भरो
+  - जमा करें
   te:
-    - "ప్రాసెసింగ్ ఫీజు"
-    - "ప్రాసెసింగ్ ఛార్జీలు"
-    - "రిజిస్ట్రేషన్ ఛార్జీలు"
-    - "డెలివరీ ఛార్జీలు"
-    - "ఫీజు"
-    - "రుసుము"
-    - "ఛార్జీలు"
-    - "చెల్లించండి"
-    - "కట్టండి"
-    - "పంపండి"
-    - "డిపాజిట్"
+  - ప్రాసెసింగ్ ఫీజు
+  - ప్రాసెసింగ్ ఛార్జీలు
+  - రిజిస్ట్రేషన్ ఛార్జీలు
+  - డెలివరీ ఛార్జీలు
+  - ఫీజు
+  - రుసుము
+  - ఛార్జీలు
+  - చెల్లించండి
+  - కట్టండి
+  - పంపండి
+  - డిపాజిట్
   te_rom:
-    - "processing fee"
-    - "processing charges"
-    - "registration charges"
-    - "fee kattandi"
-    - "charges kattandi"
-    - "charges pampandi"
-    - "deposit cheyyandi"
-    - "kattandi"
-    - "pampandi"
+  - processing fee
+  - processing charges
+  - registration charges
+  - fee kattandi
+  - charges kattandi
+  - charges pampandi
+  - deposit cheyyandi
+  - kattandi
+  - pampandi
   hinglish:
-    - "joining fee"
-    - "processing fee"
-    - "processing charges"
-    - "registration charges"
-    - "delivery charges"
-    - "fee bharo"
-    - "charges bharo"
-    - "tax bharo"
-    - "deposit karo"
-    - "fee do"
-    - "bhej do"
-    - "jama karo"
-
+  - joining fee
+  - processing fee
+  - processing charges
+  - registration charges
+  - delivery charges
+  - fee bharo
+  - charges bharo
+  - tax bharo
+  - deposit karo
+  - fee do
+  - bhej do
+  - jama karo
+  kn:
+  - ಪ್ರೊಸೆಸಿಂಗ್ ಶುಲ್ಕ
+  - ನೋಂದಣಿ ಶುಲ್ಕ
+  - ಶುಲ್ಕ
+  - ಡೆಲಿವರಿ ಶುಲ್ಕ
+  - ಠೇವಣಿ
+  - ತೆರಿಗೆ
+  - ಪಾವತಿಸಿ
+  - ಕಟ್ಟಿ
+  - processing fee
+  - processing shulka
+  - registration shulka
+  - delivery shulka
+  - shulka
+  - thevani
+  - therige
+  - pavathisi
+  - kattiri
+  - katti
+  kn_rom:
+  - processing fee
+  - processing shulka
+  - registration shulka
+  - delivery shulka
+  - shulka
+  - thevani
+  - therige
+  - pavathisi
+  - kattiri
+  - katti
+  ta:
+  - செயலாக்க கட்டணம்
+  - பதிவு கட்டணம்
+  - கட்டணம்
+  - டெலிவரி கட்டணம்
+  - வைப்புத்தொகை
+  - வரி
+  - செலுத்துங்கள்
+  - கட்டுங்கள்
+  - processing fee
+  - seyalaakka kattanam
+  - pathivu kattanam
+  - delivery kattanam
+  - kattanam
+  - vaipputhogai
+  - vari
+  - seluthungal
+  - kattungal
+  ta_rom:
+  - processing fee
+  - seyalaakka kattanam
+  - pathivu kattanam
+  - delivery kattanam
+  - kattanam
+  - vaipputhogai
+  - vari
+  - seluthungal
+  - kattungal
+  ml:
+  - പ്രോസസ്സിംഗ് ഫീസ്
+  - രജിസ്ട്രേഷൻ ഫീസ്
+  - ഫീസ്
+  - ഡെലിവറി ചാർജ്
+  - നിക്ഷേപം
+  - നികുതി
+  - അടയ്ക്കുക
+  - നൽകുക
+  - processing fee
+  - registration fees
+  - delivery charges
+  - fees
+  - nikshepam
+  - nikuthi
+  - adakkuka
+  - nalkuka
+  ml_rom:
+  - processing fee
+  - registration fees
+  - delivery charges
+  - fees
+  - nikshepam
+  - nikuthi
+  - adakkuka
+  - nalkuka
 EARNING_CLAIM:
   en:
-    - "earn"
-    - "earning"
-    - "per day"
-    - "/day"
-    - "daily"
-    - "per week"
-    - "per task"
-    - "guaranteed returns"
-    - "30% returns"
-    - "300% returns"
-    - "100% guaranteed returns"
-    - "vip stock tips"
-    - "double your money"
+  - earn
+  - earning
+  - per day
+  - /day
+  - daily
+  - per week
+  - per task
+  - guaranteed returns
+  - 30% returns
+  - 300% returns
+  - 100% guaranteed returns
+  - vip stock tips
+  - double your money
   hi:
-    - "कमाएं"
-    - "प्रति दिन"
-    - "रोजाना"
-    - "घर बैठे कमाएं"
-    - "डेली"
+  - कमाएं
+  - प्रति दिन
+  - रोजाना
+  - घर बैठे कमाएं
+  - डेली
   te:
-    - "సంపాదించండి"
-    - "రోజుకు"
-    - "ప్రతి రోజు"
-    - "రోజువారీ"
+  - సంపాదించండి
+  - రోజుకు
+  - ప్రతి రోజు
+  - రోజువారీ
   te_rom:
-    - "sampadinchandi"
-    - "rojuki"
-    - "daily"
-    - "kamao"
+  - sampadinchandi
+  - rojuki
+  - daily
+  - kamao
   hinglish:
-    - "kamao"
-    - "rozana"
-    - "daily"
-    - "per day"
-    - "/day"
-    - "ghar baithe kamaye"
-
+  - kamao
+  - rozana
+  - daily
+  - per day
+  - /day
+  - ghar baithe kamaye
+  kn:
+  - ಗಳಿಸಿ
+  - ಸಂಪಾದಿಸಿ
+  - ದಿನಕ್ಕೆ
+  - ಪ್ರತಿದಿನ
+  - ವಾರಕ್ಕೆ
+  - ಖಚಿತ ಲಾಭ
+  - galisi
+  - sampaadisi
+  - dinakke
+  - prathidina
+  - vaarakke
+  - guaranteed returns
+  kn_rom:
+  - galisi
+  - sampaadisi
+  - dinakke
+  - prathidina
+  - vaarakke
+  - guaranteed returns
+  ta:
+  - சம்பாதிக்கவும்
+  - ஈட்டவும்
+  - தினமும்
+  - ஒரு நாளைக்கு
+  - வாரத்திற்கு
+  - உத்தரவாத வருமானம்
+  - sambaathikkavum
+  - eettavum
+  - dhinamum
+  - oru naalaikku
+  - vaarathirkku
+  - guaranteed returns
+  ta_rom:
+  - sambaathikkavum
+  - eettavum
+  - dhinamum
+  - oru naalaikku
+  - vaarathirkku
+  - guaranteed returns
+  ml:
+  - സമ്പാദിക്കുക
+  - നേടുക
+  - ദിവസവും
+  - പ്രതിദിനം
+  - ആഴ്ചയിൽ
+  - ഉറപ്പായ ലാഭം
+  - sampaadhikkuka
+  - neduka
+  - dhivasavum
+  - prathidhinam
+  - aazhchayil
+  - guaranteed returns
+  ml_rom:
+  - sampaadhikkuka
+  - neduka
+  - dhivasavum
+  - prathidhinam
+  - aazhchayil
+  - guaranteed returns
 TASK_TYPE:
   en:
-    - "rating hotels"
-    - "rate hotels"
-    - "review hotels"
-    - "like videos"
-    - "like youtube videos"
-    - "subscribe"
-    - "follow"
-    - "complete tasks"
-    - "vip tasks"
-    - "rating on google"
+  - rating hotels
+  - rate hotels
+  - review hotels
+  - like videos
+  - like youtube videos
+  - subscribe
+  - follow
+  - complete tasks
+  - vip tasks
+  - rating on google
   hi:
-    - "होटल रेटिंग"
-    - "वीडियो लाइक"
-    - "टास्क पूरा करें"
-    - "टास्क"
+  - होटल रेटिंग
+  - वीडियो लाइक
+  - टास्क पूरा करें
+  - टास्क
   te:
-    - "హోటల్స్ రేటింగ్"
-    - "వీడియోలు లైక్"
-    - "టాస్క్‌లు"
+  - హోటల్స్ రేటింగ్
+  - వీడియోలు లైక్
+  - టాస్క్‌లు
   te_rom:
-    - "rating hotels"
-    - "like videos"
-    - "tasks complete"
+  - rating hotels
+  - like videos
+  - tasks complete
   hinglish:
-    - "hotels rating"
-    - "rating karna"
-    - "video like"
-    - "tasks"
-
+  - hotels rating
+  - rating karna
+  - video like
+  - tasks
+  kn:
+  - ಹೋಟೆಲ್ ರೇಟಿಂಗ್
+  - ವಿಡಿಯೋ ಲೈಕ್
+  - ಟಾಸ್ಕ್ ಪೂರ್ಣಗೊಳಿಸಿ
+  - ಉದ್ಯೋಗ
+  - ಕೆಲಸ
+  - hotel rating
+  - video like
+  - task poornagolisi
+  - udyoga
+  - kelasa
+  kn_rom:
+  - hotel rating
+  - video like
+  - task poornagolisi
+  - udyoga
+  - kelasa
+  ta:
+  - ஹோட்டல் ரேட்டிங்
+  - வீடியோ லைக்
+  - டாஸ்க் முடிக்கவும்
+  - வேலை
+  - hotel rating
+  - video like
+  - task mudikkavum
+  - velai
+  ta_rom:
+  - hotel rating
+  - video like
+  - task mudikkavum
+  - velai
+  ml:
+  - ഹോട്ടൽ റേറ്റിംഗ്
+  - വീഡിയോ ലൈക്ക്
+  - ടാസ്ക് പൂർത്തിയാക്കുക
+  - ജോലി
+  - hotel rating
+  - video like
+  - task poorthiyaakkuka
+  - joli
+  ml_rom:
+  - hotel rating
+  - video like
+  - task poorthiyaakkuka
+  - joli
 RELATION_OR_NEW_NUMBER:
   en:
-    - "mom"
-    - "dad"
-    - "bhai"
-    - "bro"
-    - "brother"
-    - "sister"
-    - "friend"
-    - "son"
-    - "daughter"
-    - "new number"
-    - "phone broke"
-    - "phone lost"
+  - mom
+  - dad
+  - bhai
+  - bro
+  - brother
+  - sister
+  - friend
+  - son
+  - daughter
+  - new number
+  - phone broke
+  - phone lost
   hi:
-    - "माँ"
-    - "पिताजी"
-    - "भाई"
-    - "दोस्त"
-    - "बेटा"
-    - "नया नंबर"
-    - "फोन खो गया"
-    - "फोन टूट गया"
+  - माँ
+  - पिताजी
+  - भाई
+  - दोस्त
+  - बेटा
+  - नया नंबर
+  - फोन खो गया
+  - फोन टूट गया
   te:
-    - "అమ్మ"
-    - "నాన్న"
-    - "అన్న"
-    - "తమ్ముడు"
-    - "అక్క"
-    - "చెల్లి"
-    - "మిత్రమా"
-    - "కొత్త నంబర్"
-    - "ఫోన్ పోయింది"
+  - అమ్మ
+  - నాన్న
+  - అన్న
+  - తమ్ముడు
+  - అక్క
+  - చెల్లి
+  - మిత్రమా
+  - కొత్త నంబర్
+  - ఫోన్ పోయింది
   te_rom:
-    - "anna"
-    - "akka"
-    - "tammudu"
-    - "bro"
-    - "friend"
-    - "kotha number"
-    - "phone poyindi"
+  - anna
+  - akka
+  - tammudu
+  - bro
+  - friend
+  - kotha number
+  - phone poyindi
   hinglish:
-    - "bhai"
-    - "bro"
-    - "bhaiya"
-    - "yaar"
-    - "dost"
-    - "naye number"
-    - "naya number"
-    - "phone kho gaya"
-    - "phone toot gaya"
-
+  - bhai
+  - bro
+  - bhaiya
+  - yaar
+  - dost
+  - naye number
+  - naya number
+  - phone kho gaya
+  - phone toot gaya
+  kn:
+  - ಅಮ್ಮ
+  - ಅಪ್ಪ
+  - ಅಣ್ಣ
+  - ತಮ್ಮ
+  - ಅಕ್ಕ
+  - ತಂಗಿ
+  - ಸ್ನೇಹಿತ
+  - ಹೊಸ ನಂಬರ್
+  - ಫೋನ್ ಕಳೆದುಹೋಗಿದೆ
+  - ಫೋನ್ ಹಾಳಾಗಿದೆ
+  - amma
+  - appa
+  - anna
+  - thamma
+  - akka
+  - thangi
+  - snehitha
+  - hosa number
+  - phone kaledhuhogide
+  - phone haalaagide
+  kn_rom:
+  - amma
+  - appa
+  - anna
+  - thamma
+  - akka
+  - thangi
+  - snehitha
+  - hosa number
+  - phone kaledhuhogide
+  - phone haalaagide
+  ta:
+  - அம்மா
+  - அப்பா
+  - அண்ணன்
+  - தம்பி
+  - அக்கா
+  - தங்கை
+  - நண்பன்
+  - புதிய எண்
+  - போன் உடைந்துவிட்டது
+  - போன் தொலைந்துவிட்டது
+  - amma
+  - appa
+  - annan
+  - thambi
+  - akka
+  - thangai
+  - nanban
+  - pudhiya number
+  - phone udaindhuvittathu
+  - phone tholaindhuvittathu
+  ta_rom:
+  - amma
+  - appa
+  - annan
+  - thambi
+  - akka
+  - thangai
+  - nanban
+  - pudhiya number
+  - phone udaindhuvittathu
+  - phone tholaindhuvittathu
+  ml:
+  - അമ്മ
+  - അച്ഛൻ
+  - ചേട്ടൻ
+  - അനിയൻ
+  - ചേച്ചി
+  - അനിയത്തി
+  - സുഹൃത്ത്
+  - പുതിയ നമ്പർ
+  - ഫോൺ നഷ്ടപ്പെട്ടു
+  - ഫോൺ കേടായി
+  - amma
+  - achan
+  - chettan
+  - aniyan
+  - chechi
+  - aniyathi
+  - suhruth
+  - puthiya number
+  - phone nashtappettu
+  - phone kedaayi
+  ml_rom:
+  - amma
+  - achan
+  - chettan
+  - aniyan
+  - chechi
+  - aniyathi
+  - suhruth
+  - puthiya number
+  - phone nashtappettu
+  - phone kedaayi
 MONEY_REQUEST:
   en:
-    - "send"
-    - "transfer"
-    - "urgent money"
-    - "gpay"
-    - "phonepe"
-    - "paytm"
-    - "upi"
-    - "send urgently"
+  - send
+  - transfer
+  - urgent money
+  - gpay
+  - phonepe
+  - paytm
+  - upi
+  - send urgently
   hi:
-    - "भेजें"
-    - "भेजो"
-    - "पैसे भेजो"
-    - "ट्रांसफर करो"
-    - "जीपे"
-    - "फोनपे"
-    - "पेटीएम"
-    - "यूपीआई"
+  - भेजें
+  - भेजो
+  - पैसे भेजो
+  - ट्रांसफर करो
+  - जीपे
+  - फोनपे
+  - पेटीएम
+  - यूपीआई
   te:
-    - "పంపండి"
-    - "డబ్బులు పంపండి"
-    - "ట్రాన్స్‌ఫర్ చేయండి"
+  - పంపండి
+  - డబ్బులు పంపండి
+  - ట్రాన్స్‌ఫర్ చేయండి
   te_rom:
-    - "pampu"
-    - "pampandi"
-    - "transfer chey"
-    - "gpay lo pampu"
+  - pampu
+  - pampandi
+  - transfer chey
+  - gpay lo pampu
   hinglish:
-    - "bhej de"
-    - "bhejo"
-    - "transfer kar"
-    - "daal de"
-    - "gpay pe"
-    - "phonepe pe"
-    - "paytm pe"
+  - bhej de
+  - bhejo
+  - transfer kar
+  - daal de
+  - gpay pe
+  - phonepe pe
+  - paytm pe
+  kn:
+  - ಹಣ ಕಳುಹಿಸಿ
+  - ಕಳುಹಿಸಿ
+  - ವರ್ಗಾಯಿಸಿ
+  - ಜಿಪೇ ಮಾಡಿ
+  - hana kaluhisi
+  - kaluhisi
+  - vargayisi
+  - gpay maadi
+  - phonepe maadi
+  - send maadi
+  kn_rom:
+  - hana kaluhisi
+  - kaluhisi
+  - vargayisi
+  - gpay maadi
+  - phonepe maadi
+  - send maadi
+  ta:
+  - பணம் அனுப்புங்கள்
+  - அனுப்புங்கள்
+  - பரிமாற்றம் செய்யுங்கள்
+  - ஜிபே செய்யுங்கள்
+  - panam anuppungal
+  - anuppungal
+  - parimaatram seiyungal
+  - gpay seiyungal
+  - phonepe seiyungal
+  - anuppu
+  ta_rom:
+  - panam anuppungal
+  - anuppungal
+  - parimaatram seiyungal
+  - gpay seiyungal
+  - phonepe seiyungal
+  - anuppu
+  ml:
+  - പണം അയക്കുക
+  - അയക്കുക
+  - ട്രാൻസ്ഫർ ചെയ്യുക
+  - ജിപേ ചെയ്യുക
+  - panam ayakkuka
+  - ayakkuka
+  - transfer cheyyuka
+  - gpay cheyyuka
+  - phonepe cheyyuka
+  - ayakku
+  ml_rom:
+  - panam ayakkuka
+  - ayakkuka
+  - transfer cheyyuka
+  - gpay cheyyuka
+  - phonepe cheyyuka
+  - ayakku

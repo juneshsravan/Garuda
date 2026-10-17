@@ -30,6 +30,21 @@ LEGITIMACY_RULES = [
             r"\bsbi\s+never\s+asks\s+for\s+your\s+otp,\s+pin\s+or\s+password\b",
             r"\bnever\s+share\s+(?:your\s+)?(?:otp|pin|password)\b",
             r"\bdo\s+not\s+share\s+them\s+with\s+anyone\b",
+            # Kannada
+            r"ಒಟಿಪಿ\s+ಯಾರೊಂದಿಗೂ\s+ಹಂಚಿಕೊಳ್ಳಬೇಡಿ",
+            r"ಬ್ಯಾಂಕ್\s+ಎಂದಿಗೂ\s+ಒಟಿಪಿ\s+ಕೇಳುವುದಿಲ್ಲ",
+            r"\botp\s+yarondigoo\s+hanchikollabedi\b",
+            r"\bbank\s+endigoo\s+otp\s+keluvudilla\b",
+            # Tamil
+            r"ஓடிபியை\s+யாருடனும்\s+பகிர\s+வேண்டாம்",
+            r"வங்கி\s+ஒருபோதும்\s+ஓடிபி\s+கேட்காது",
+            r"\botp\s+yarudanum\s+pagira\s+vendam\b",
+            r"\bvangi\s+orupothum\s+otp\s+ketkathu\b",
+            # Malayalam
+            r"ഒടിപി\s+ആരോടും\s+പങ്കിടരുത്",
+            r"ബാങ്ക്\s+ഒരിക്കലും\s+ഒടിപി\s+ചോദിക്കില്ല",
+            r"\botp\s+aarodum\s+pankidaruthu\b",
+            r"\bbank\s+orikkalum\s+otp\s+chodikkilla\b",
         ],
     },
     {
@@ -132,6 +147,24 @@ LEGITIMACY_RULES = [
             r"\b(?:bank\s+)?branch\s+(?:jaye|jayein|jao|visit\s+kare|me\s+sampark\s+kare)\b",
             r"\bapne\s+bank\s+(?:se\s+sampark\s+kare|branch\s+jaye|branch\s+visit\s+kare)\b",
             r"\bofficial\s+(?:website|portal|app)\s+(?:par\s+jaye|check\s+kare|se\s+kare|visit\s+kare|dekhe)\b",
+            # Kannada
+            r"ನಿಮ್ಮ\s+ಬ್ಯಾಂಕ್\s+ಶಾಖೆಗೆ\s+ಭೇಟಿ\s+ನೀಡಿ",
+            r"(?:ನಿಮ್ಮ\s+)?ಬ್ಯಾಂಕ್\s+ಶಾಖೆಯನ್ನು\s+(?:ಸಂಪರ್ಕಿಸಿ|ಭೇಟಿ\s+ನೀಡಿ)",
+            r"ಅಧಿಕೃತ\s+(?:ವೆಬ್‌ಸೈಟ್|ಆ್ಯಪ್)",
+            r"\b(?:nimma\s+)?bank\s+shakhege\s+bheti\s+needi\b",
+            r"\badhikrutha\s+(?:website|app)\b",
+            # Tamil
+            r"உங்கள்\s+வங்கி\s+கிளைக்கு\s+செல்லவும்",
+            r"(?:உங்கள்\s+)?வங்கி\s+கிளையை\s+(?:தொடர்பு\s+கொள்ளவும்|அணுகவும்)",
+            r"அதிகாரப்பூர்வ\s+(?:இணையதளம்|செயலி)",
+            r"\b(?:ungal\s+)?vangi\s+kilaikku\s+sellavum\b",
+            r"\badhikarappoorva\s+(?:website|app)\b",
+            # Malayalam
+            r"നിങ്ങളുടെ\s+ബാങ്ക്\s+ശാഖ\s+സന്ദർശിക്കുക",
+            r"(?:നിങ്ങളുടെ\s+)?ബാങ്ക്\s+ശാഖയുമായി\s+ബന്ധപ്പെടുക",
+            r"ഔദ്യോഗിക\s+(?:വെബ്‌സൈറ്റ്|ആപ്പ്)",
+            r"\b(?:ningalude\s+)?bank\s+shakha\s+sandarshikkuka\b",
+            r"\baudhyogika\s+(?:website|app)\b",
         ],
     },
     {

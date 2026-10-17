@@ -1,0 +1,75 @@
+# GARUDA Golden Test Cases - Tamil (Native Script, Romanized, Code-Mixed)
+cases:
+  # Native Script Scams (3)
+  - id: ta_scam_native_1
+    type: scam
+    subtype: native_script
+    text: "அன்புள்ள வாடிக்கையாளரே, உங்கள் வங்கி கணக்கு இன்று முடக்கப்படும். உடனடியாக பான் புதுப்பிக்க கிளிக் செய்யவும்: http://bit.ly/tamil-bank"
+    expected_level:
+      - high
+      - critical
+
+  - id: ta_scam_native_2
+    type: scam
+    subtype: native_script
+    text: "உங்கள் மின்சாரம் இன்றிரவு துண்டிக்கப்படும். முந்தைய மாத பில் செலுத்தப்படவில்லை. உடனடியாக 9876543211 எண்ணை அழைக்கவும்."
+    expected_level:
+      - high
+      - critical
+
+  - id: ta_scam_native_3
+    type: scam
+    subtype: native_script
+    text: "வாழ்த்துகள்! நீங்கள் ₹10 லட்சம் பரிசு வென்றுள்ளீர்கள். தொகையை பெற ₹1,000 செயலாக்க கட்டணம் செலுத்தவும்."
+    expected_level:
+      - high
+      - critical
+
+  # Native Script Genuine (2)
+  - id: ta_safe_native_1
+    type: safe
+    subtype: native_script
+    text: "உங்கள் கணக்கு XX4321 இலிருந்து ₹1,200 எடுக்கப்பட்டது. மீதமுள்ள இருப்பு ₹8,500. அதிகாரப்பூர்வ செயலியில் பார்க்கவும்."
+    expected_level:
+      - likely_safe
+
+  - id: ta_safe_native_2
+    type: safe
+    subtype: native_script
+    text: "வங்கி ஒருபோதும் ஓடிபி கேட்காது. உங்கள் ஓடிபியை யாருடனும் பகிர வேண்டாம். சந்தேகத்திற்கு உங்கள் வங்கி கிளைக்கு செல்லவும்."
+    expected_level:
+      - likely_safe
+
+  # Romanized Scams (2)
+  - id: ta_scam_rom_1
+    type: scam
+    subtype: romanized
+    text: "Ungal vangi kanakku block aagividum. Udanadiyaga pan update seiyavum: http://bit.ly/ta-bank"
+    expected_level:
+      - high
+      - critical
+
+  - id: ta_scam_rom_2
+    type: scam
+    subtype: romanized
+    text: "Part time velai! Dhinamum 2000 sambaathikkavum. Registration kattanam 500 seluthungal."
+    expected_level:
+      - high
+      - critical
+
+  # Romanized Genuine (1)
+  - id: ta_safe_rom_1
+    type: safe
+    subtype: romanized
+    text: "Ungal account XX8765 il Rs 3000 credited. Thagavalukku ungal vangi kilaikku sellavum."
+    expected_level:
+      - likely_safe
+
+  # Mixed with English Scam (1)
+  - id: ta_scam_mixed_1
+    type: scam
+    subtype: mixed_english
+    text: "Dear Customer, உங்கள் bank account suspend செய்யப்பட்டுள்ளது. Update your KYC immediately by calling 9123456789."
+    expected_level:
+      - high
+      - critical

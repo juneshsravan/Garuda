@@ -1,7 +1,7 @@
 from typing import Dict, Any, Optional
 import re
 
-from app.engine.normalize import normalize_text, detect_language
+from app.engine.normalize import normalize_text, detect_language, is_reviewed_language
 from app.engine.extractors import extract_urls, extract_upi_details, extract_phone_numbers
 from app.engine.analyzers.concept_rules import analyze_concept_combinations
 from app.engine.analyzers.text_rules import Indicator
@@ -26,14 +26,15 @@ class DetectionEngine:
         Analyzes a message text for scam, phishing, fraud, and legitimacy indicators.
         Returns complete analysis payload matching ARCHITECTURE Section 6 & 8.
         """
-        # 1. Validation & Unusable check
+        # 1. Validation & Unusable check (covers Latin, Devanagari, Telugu, Kannada, Tamil, Malayalam)
         stripped = (raw_text or "").strip()
-        has_alphanumeric = bool(re.search(r"[a-zA-Z0-9\u0900-\u097F\u0C00-\u0C7F]", stripped))
+        has_alphanumeric = bool(re.search(r"[a-zA-Z0-9\u0900-\u097F\u0C00-\u0C7F\u0C80-\u0CFF\u0B80-\u0BFF\u0D00-\u0D7F]", stripped))
         is_unusable = not stripped or not has_alphanumeric
 
         # 2. Normalize
         clean_text, search_text = normalize_text(stripped)
         detected_lang, lang_confidence = detect_language(clean_text)
+        is_reviewed = is_reviewed_language(detected_lang)
 
         # 3. Extract entities (URLs, UPI, Phones)
         extracted_urls = extract_urls(clean_text) if not is_unusable else []
@@ -93,6 +94,8 @@ class DetectionEngine:
             confidence = 0.70
         else:
             confidence = round(min(0.95, lang_confidence * 0.98), 2)
+            if not is_reviewed:
+                confidence = round(max(0.40, confidence * 0.75), 2)
 
         # 7. Verification Status
         # Architecture Rule: Never "verified safe", always honest verification status
@@ -111,6 +114,12 @@ class DetectionEngine:
             urls=extracted_urls,
         )
 
+        summary = explanation["summary"]
+        if not is_reviewed:
+            if not summary.endswith("."):
+                summary += "."
+            summary += " Language support is preliminary."
+
         return {
             "scan_id": scan_id,
             "scan_type": "message",
@@ -122,7 +131,7 @@ class DetectionEngine:
             "confidence": confidence,
             "verification_status": verification_status,
             "category": category,
-            "summary": explanation["summary"],
+            "summary": summary,
             "indicators": [ind.to_dict() for ind in risk_indicators],
             "legitimacy_signals": [leg.to_dict() for leg in legitimacy_signals],
             "recommendations": explanation["recommendations"],

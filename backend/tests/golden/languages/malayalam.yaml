@@ -1,0 +1,75 @@
+# GARUDA Golden Test Cases - Malayalam (Native Script, Romanized, Code-Mixed)
+cases:
+  # Native Script Scams (3)
+  - id: ml_scam_native_1
+    type: scam
+    subtype: native_script
+    text: "പ്രിയ ഉപഭോക്താവേ, നിങ്ങളുടെ ബാങ്ക് അക്കൗണ്ട് ഇന്ന് ബ്ലോക്ക് ചെയ്യപ്പെടും. ഉടൻ പാൻ അപ്ഡേറ്റ് ചെയ്യാൻ ഈ ലിങ്ക് ക്ലിക്ക് ചെയ്യുക: http://bit.ly/malayalam-bank"
+    expected_level:
+      - high
+      - critical
+
+  - id: ml_scam_native_2
+    type: scam
+    subtype: native_script
+    text: "നിങ്ങളുടെ വൈദ്യുതി ഇന്ന് രാത്രി വിച്ഛേദിക്കും. ബിൽ അടച്ചിട്ടില്ല. ഉടൻ ഈ നമ്പറിലേക്ക് വിളിക്കുക 9876543212."
+    expected_level:
+      - high
+      - critical
+
+  - id: ml_scam_native_3
+    type: scam
+    subtype: native_script
+    text: "അഭിനന്ദനങ്ങൾ! നിങ്ങൾ ₹15 ലക്ഷം ലോട്ടറി വിജയിച്ചു. സമ്മാനം ലഭിക്കാൻ ₹1,500 രജിസ്ട്രേഷൻ ഫീസ് അടയ്ക്കുക."
+    expected_level:
+      - high
+      - critical
+
+  # Native Script Genuine (2)
+  - id: ml_safe_native_1
+    type: safe
+    subtype: native_script
+    text: "നിങ്ങളുടെ അക്കൗണ്ട് XX9876 ൽ നിന്ന് ₹750 പിൻവലിച്ചു. ബാക്കി തുക ₹15,200. ഔദ്യോഗിക ആപ്പിൽ പരിശോധിക്കുക."
+    expected_level:
+      - likely_safe
+
+  - id: ml_safe_native_2
+    type: safe
+    subtype: native_script
+    text: "ബാങ്ക് ഒരിക്കലും ഒടിപി ചോദിക്കില്ല. നിങ്ങളുടെ ഒടിപി ആരോടും പങ്കിടരുത്. സംശയങ്ങൾക്ക് നിങ്ങളുടെ ബാങ്ക് ശാഖ സന്ദർശിക്കുക."
+    expected_level:
+      - likely_safe
+
+  # Romanized Scams (2)
+  - id: ml_scam_rom_1
+    type: scam
+    subtype: romanized
+    text: "Ningalude bank akkanru block aayi. Udane pan update cheyyanam: http://bit.ly/ml-bank"
+    expected_level:
+      - high
+      - critical
+
+  - id: ml_scam_rom_2
+    type: scam
+    subtype: romanized
+    text: "Abhinandanangal! Ningal lottery vijayichu. Sammaanam labhikkan 1000 processing fees adakkuka."
+    expected_level:
+      - high
+      - critical
+
+  # Romanized Genuine (1)
+  - id: ml_safe_rom_1
+    type: safe
+    subtype: romanized
+    text: "Ningalude account XX2345 il Rs 1500 debited. Samshayangalkku ningalude bank shakha sandarshikkuka."
+    expected_level:
+      - likely_safe
+
+  # Mixed with English Scam (1)
+  - id: ml_scam_mixed_1
+    type: scam
+    subtype: mixed_english
+    text: "Dear User, നിങ്ങളുടെ SBI account blocked ആയിട്ടുണ്ട്. Click this link to verify your KYC: http://sbi-online.cc"
+    expected_level:
+      - high
+      - critical

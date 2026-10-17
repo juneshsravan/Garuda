@@ -1,0 +1,75 @@
+# GARUDA Golden Test Cases - Kannada (Native Script, Romanized, Code-Mixed)
+cases:
+  # Native Script Scams (3)
+  - id: kn_scam_native_1
+    type: scam
+    subtype: native_script
+    text: "ಗ್ರಾಹಕರೇ, ನಿಮ್ಮ ಬ್ಯಾಂಕ್ ಖಾತೆ ಇಂದು ಬ್ಲಾಕ್ ಆಗಲಿದೆ. ತಕ್ಷಣ ಪ್ಯಾನ್ ಅಪ್‌ಡೇಟ್ ಮಾಡಲು ಈ ಲಿಂಕ್ ಕ್ಲಿಕ್ ಮಾಡಿ: http://bit.ly/kannada-bank"
+    expected_level:
+      - high
+      - critical
+
+  - id: kn_scam_native_2
+    type: scam
+    subtype: native_script
+    text: "ಗ್ರಾಹಕರೇ, ನಿಮ್ಮ ವಿದ್ಯುತ್ ಕಟ್ ಮಾಡಲಾಗುವುದು. ಬಿಲ್ ಪಾವತಿಯಾಗಿಲ್ಲ. ತಕ್ಷಣ ಈ ನಂಬರ್‌ಗೆ ಕರೆ ಮಾಡಿ 9876543210."
+    expected_level:
+      - high
+      - critical
+
+  - id: kn_scam_native_3
+    type: scam
+    subtype: native_script
+    text: "ಅಭಿನಂದನೆಗಳು! ನೀವು ₹25 ಲಕ್ಷ ಲಾಟರಿ ಗೆದ್ದಿದ್ದೀರಿ. ಬಹುಮಾನ ಪಡೆಯಲು ₹2,500 ಪ್ರೊಸೆಸಿಂಗ್ ಶುಲ್ಕ ಪಾವತಿಸಿ."
+    expected_level:
+      - high
+      - critical
+
+  # Native Script Genuine (2)
+  - id: kn_safe_native_1
+    type: safe
+    subtype: native_script
+    text: "ನಿಮ್ಮ ಖಾತೆ XX1234 ನಿಂದ ₹500 ಡೆಬಿಟ್ ಆಗಿದೆ. ಲಭ್ಯವಿರುವ ಬ್ಯಾಲೆನ್ಸ್ ₹12,450. ಅಧಿಕೃತ ಆ್ಯಪ್‌ನಲ್ಲಿ ಪರಿಶೀಲಿಸಿ."
+    expected_level:
+      - likely_safe
+
+  - id: kn_safe_native_2
+    type: safe
+    subtype: native_script
+    text: "ಗ್ರಾಹಕರೇ, ಒಟಿಪಿ ಯಾರೊಂದಿಗೂ ಹಂಚಿಕೊಳ್ಳಬೇಡಿ. ಬ್ಯಾಂಕ್ ಎಂದಿಗೂ ಒಟಿಪಿ ಕೇಳುವುದಿಲ್ಲ. ಸಹಾಯಕ್ಕಾಗಿ ನಿಮ್ಮ ಬ್ಯಾಂಕ್ ಶಾಖೆಗೆ ಭೇಟಿ ನೀಡಿ."
+    expected_level:
+      - likely_safe
+
+  # Romanized Scams (2)
+  - id: kn_scam_rom_1
+    type: scam
+    subtype: romanized
+    text: "Nimma bank khaathe block aagide. Eegale update maadi http://bit.ly/kn-bank"
+    expected_level:
+      - high
+      - critical
+
+  - id: kn_scam_rom_2
+    type: scam
+    subtype: romanized
+    text: "Abhinandanegalu! Neevu prize gelidiri. Bahumaana padayalu 1500 processing shulka kattiri."
+    expected_level:
+      - high
+      - critical
+
+  # Romanized Genuine (1)
+  - id: kn_safe_rom_1
+    type: safe
+    subtype: romanized
+    text: "Nimma account XX5678 ge Rs 2000 credit aagide. Sahayakke nimma bank shakhege bheti needi."
+    expected_level:
+      - likely_safe
+
+  # Mixed with English Scam (1)
+  - id: kn_scam_mixed_1
+    type: scam
+    subtype: mixed_english
+    text: "Dear Customer, ನಿಮ್ಮ SBI account block ಆಗಿದೆ. Please share your OTP immediately to verify: http://sbi-verify.top"
+    expected_level:
+      - high
+      - critical
