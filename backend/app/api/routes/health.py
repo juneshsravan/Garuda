@@ -9,7 +9,7 @@ router = APIRouter(tags=["Health"])
 @router.get("/health")
 def health_check():
     """
-    Health check endpoint that verifies API uptime and Supabase PostgreSQL database connectivity.
+    Health check endpoint that verifies API uptime and PostgreSQL database connectivity.
     """
     is_healthy, error_msg = check_db_connection()
     if not is_healthy:

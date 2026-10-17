@@ -66,7 +66,7 @@ Every chunk prompt ends with: commit on your branch, push the branch, open a Pul
 ### CHUNK 1 — Backend + Supabase + schema
 ```
 Read docs/ARCHITECTURE.md and docs/BUILD_PLAN.md fully. Follow both exactly, especially BUILD_PLAN Section 2 rules.
-Setup: Windows, Python 3.14, Node 24, Git. Database = Supabase only: garuda-dev (DATABASE_URL) and garuda-test (TEST_DATABASE_URL). No local PostgreSQL, no Docker database, no SQLite.
+Setup: Windows, Python 3.14, Node 24, Git. Database = Local PostgreSQL 16 (each developer runs their own; Supabase/hosted PostgreSQL is a future deployment option): garuda-dev (DATABASE_URL) and garuda-test (TEST_DATABASE_URL). No local PostgreSQL, no Docker database, no SQLite.
 
 Do chunk 1 only:
 1. git init with .gitignore (backend/.env, .venv, __pycache__, node_modules, *.db, .next).

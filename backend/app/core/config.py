@@ -9,7 +9,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 def normalize_db_url(url: Optional[str]) -> str:
     """
     Normalizes PostgreSQL connection strings to SQLAlchemy + Psycopg 3 format.
-    Ensures sslmode=require for remote hosts (e.g. Supabase), while allowing local connections.
+    Ensures sslmode=require for remote hosts, while allowing local connections.
     Enforces PostgreSQL only. SQLite fallback is strictly prohibited.
     """
     if not url or not url.strip():
@@ -41,7 +41,7 @@ def normalize_db_url(url: Optional[str]) -> str:
     hostname = (parsed.hostname or "").lower()
     is_local = hostname in ("localhost", "127.0.0.1", "")
 
-    # For remote hosts (e.g. Supabase pooler), ensure sslmode=require if not specified
+    # For remote hosts, ensure sslmode=require if not specified
     if not is_local:
         qs = parse_qs(parsed.query)
         if "sslmode" not in qs:

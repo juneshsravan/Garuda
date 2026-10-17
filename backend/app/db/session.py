@@ -16,6 +16,7 @@ def get_engine(is_test: bool = False):
             db_url,
             pool_pre_ping=True,
             pool_recycle=300,
+            connect_args={"connect_timeout": 5},
         )
         if not is_test:
             _engine = engine
@@ -47,7 +48,7 @@ def get_db() -> Generator[Session, None, None]:
 
 def check_db_connection() -> Tuple[bool, Optional[str]]:
     """
-    Executes a simple query against Supabase PostgreSQL to verify connection health.
+    Executes a simple query against PostgreSQL to verify connection health.
     Returns (True, None) on success, or (False, error_message) on failure.
     """
     try:

@@ -11,7 +11,7 @@ v2 changes from v1: **Supabase is the only database** (no local PostgreSQL, no D
 ## 0. Rules for every AI agent and teammate working in this repo
 
 1. Follow this document. Do not redesign or replace the architecture.
-2. **Supabase (PostgreSQL) only.** Never create or fall back to SQLite. If `DATABASE_URL` fails, crash with a clear error.
+2. **Local PostgreSQL 16 (each developer runs their own; Supabase/hosted PostgreSQL is a future deployment option).** Never create or fall back to SQLite. If `DATABASE_URL` fails, crash with a clear error.
 3. **Schema changes only through Alembic migrations**, and only the backend lead creates migrations. No separate `.sql` schema files.
 4. **Tests never touch the dev database.** Tests use the separate Supabase test project via `TEST_DATABASE_URL`.
 5. **Supabase is only the database.** No Supabase Auth, no Supabase JS client, no Supabase keys anywhere in the frontend.
