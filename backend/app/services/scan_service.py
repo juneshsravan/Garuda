@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session, joinedload, selectinload
 
 from app.core.errors import AppException
 from app.engine import engine
+from app.engine.analyzers.url_analyzer import analyze_url as run_url_analyzer
 from app.models.scan import (
     AnalysisResult,
     Image,
@@ -42,6 +43,10 @@ CATEGORY_LABELS: Dict[str, str] = {
     "unverifiable": "Unverifiable Content",
     "legitimate_communication": "Likely Legitimate Communication",
     "suspicious_communication": "Suspicious Communication",
+    "illegal_betting": "Illegal Betting / Gambling Platform",
+    "restricted_adult": "Restricted Content (Adult)",
+    "suspicious_link": "Suspicious Link",
+    "no_warning_signs": "No Warning Signs Found",
 }
 
 # Standard risk band labels
@@ -250,6 +255,98 @@ def analyze_message(
     return result
 
 
+# ------------------------------------------------------------------------------
+# URL analysis
+# ------------------------------------------------------------------------------
+URL_CATEGORY_CODES = {
+    "phishing": "phishing_link",
+    "gambling": "illegal_betting",
+    "adult": "restricted_adult",
+    "suspicious_link": "suspicious_link",
+    "none": "no_warning_signs",
+}
+
+URL_VERIFY_STEPS = [
+    "Type the official website address yourself instead of opening the link.",
+    "Check the exact spelling of the domain (e.g. sbi.co.in, not sbi-kyc-update.xyz).",
+    "Contact the organisation through its official app or the number on your card.",
+]
+
+
+def url_result_to_analysis(r) -> Dict[str, Any]:
+    """Converts the URL analyzer's result into the same shape as message analysis,
+    so saving, History, scan detail and the Dashboard work without changes."""
+    code = URL_CATEGORY_CODES.get(r.category, r.category)
+    if r.legitimacy_signals or any(i.code.startswith("BLOCKLIST") for i in r.indicators):
+        confidence = 0.9      # matched a known list
+    elif r.indicators:
+        confidence = 0.75     # structural warning signs
+    else:
+        confidence = 0.5      # nothing found, but not proven safe
+    return {
+        "scan_type": "url",
+        "risk": {"score": r.score, "level": r.level,
+                 "label": RISK_LABELS.get(r.level, r.label)},
+        "confidence": confidence,
+        "verification_status": r.verification_status,
+        "category": {"code": code,
+                     "label": CATEGORY_LABELS.get(code, r.category_label or code)},
+        "summary": r.summary,
+        "indicators": [i.__dict__ for i in r.indicators],
+        "legitimacy_signals": [i.__dict__ for i in r.legitimacy_signals],
+        "recommendations": r.recommendations,
+        "verify_steps": URL_VERIFY_STEPS,
+        "extracted": {
+            "urls": [{"raw": r.input, "normalized": r.normalized_url,
+                      "domain": r.registered_domain, "source": "direct"}],
+            "qr": None, "upi": None, "phone": [], "language": None,
+        },
+        "intel": [{"source": "garuda_lists",
+                   "status": "matched" if r.verification_status != "unverified" else "not_found"}],
+        "engine_version": r.engine_version,
+    }
+
+
+def analyze_url(
+    db: Session,
+    user_id: uuid.UUID,
+    url: str,
+    save: bool = True,
+) -> Dict[str, Any]:
+    """
+    Analyzes a URL with the static URL analyzer (never opens the link).
+    Invalid input -> 422 and nothing is saved. If save=True, persists through
+    save_scan_record (scans, analysis_results, threat_indicators, urls).
+    """
+    r = run_url_analyzer(url)
+    if not r.valid:
+        raise AppException(
+            code="INVALID_URL",
+            message=r.error or "This doesn't look like a valid web address.",
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        )
+
+    result = url_result_to_analysis(r)
+    scan_id = uuid.uuid4()
+
+    if save:
+        save_scan_record(
+            db=db,
+            user_id=user_id,
+            scan_id=scan_id,
+            scan_type="url",
+            input_sha256=hashlib.sha256(r.normalized_url.encode("utf-8")).hexdigest(),
+            analysis_dict=result,
+            urls_data=result["extracted"]["urls"],
+            persisted_content=True,
+        )
+        result["scan_id"] = str(scan_id)
+    else:
+        result["scan_id"] = None
+
+    return result
+
+
 def get_user_scans(
     db: Session,
     user_id: uuid.UUID,
@@ -270,6 +367,7 @@ def get_user_scans(
         .options(
             joinedload(Scan.analysis_result),
             joinedload(Scan.message),
+            selectinload(Scan.urls),
         )
     )
 
@@ -306,7 +404,12 @@ def get_user_scans(
             continue
         cat_label = CATEGORY_LABELS.get(res.category, res.category.replace("_", " ").title())
         risk_label = RISK_LABELS.get(res.risk_level, res.risk_level.replace("_", " ").title())
-        preview = s.message.content[:120] if s.message else None
+        if s.message:
+            preview = s.message.content[:120]
+        elif s.urls:
+            preview = s.urls[0].raw_url[:120]
+        else:
+            preview = None
 
         items.append(
             ScanListItem(
