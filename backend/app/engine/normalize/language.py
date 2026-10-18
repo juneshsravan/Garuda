@@ -18,7 +18,8 @@ HINGLISH_MARKERS = {
 
 TELUGU_ROMAN_MARKERS = {
     "meeku", "vachindi", "cheyandi", "chesi", "undi", "kavali", "evaru", "ee", "mee",
-    "khata", "roju", "ventane", "ippude", "kurchi", "pampandi", "dabbu", "telugulo"
+    "khata", "roju", "ventane", "ippude", "kurchi", "pampandi", "dabbu", "telugulo",
+    "meru", "meeru", "aiyaru", "ayyaru", "oka", "gelicharu"
 }
 
 KANNADA_ROMAN_MARKERS = {

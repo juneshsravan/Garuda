@@ -1,69 +1,151 @@
-from fastapi import APIRouter, Depends, Request
-from sqlalchemy.orm import Session
-
-from app.api.deps import get_current_user
-from app.core.config import settings
-from app.core.rate_limit import get_user_rate_limit_key, limiter
-from app.db.session import get_db
-from app.models.user import User
-from app.schemas.scan import AnalysisResponse, MessageAnalyzeRequest, UrlAnalyzeRequest
-from app.services.scan_service import analyze_message, analyze_url
-
-router = APIRouter(prefix="/analyze", tags=["Detection & Analysis"])
+import uuid
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
-@router.post(
-    "/message",
-    response_model=AnalysisResponse,
-    summary="Analyze SMS / chat message",
-    description="Analyzes message for scam, phishing, extortion, and legitimacy signals. Requires login.",
-)
-@limiter.limit(settings.RATE_LIMIT_ANALYZE, key_func=get_user_rate_limit_key)
-def analyze_message_endpoint(
-    request: Request,
-    payload: MessageAnalyzeRequest,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Analyzes message text (1-5000 chars) for scams, fraud, and phishing.
-    Rate limited to 30 requests/minute per authenticated user.
-    If save=True, persists scans, messages, analysis_results, threat_indicators, and urls in one transaction.
-    If save=False, stores nothing.
-    """
-    return analyze_message(
-        db=db,
-        user_id=current_user.id,
-        text=payload.text,
-        save=payload.save,
+class MessageAnalyzeRequest(BaseModel):
+    text: str = Field(
+        ...,
+        min_length=1,
+        max_length=5000,
+        description="Message content to analyze (1 to 5000 characters).",
+    )
+    save: bool = Field(
+        default=True,
+        description="Whether to persist the scan and its results in the database.",
     )
 
+    @field_validator("text")
+    @classmethod
+    def validate_non_blank(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError("Message text cannot be empty or whitespace only.")
+        return v
 
-@router.post(
-    "/url",
-    response_model=AnalysisResponse,
-    summary="Analyze a web link (URL)",
-    description=(
-        "Checks a link for phishing, fake brand look-alikes, illegal betting and adult sites "
-        "using static analysis only (the link is never opened). Requires login."
-    ),
-)
-@limiter.limit(settings.RATE_LIMIT_ANALYZE, key_func=get_user_rate_limit_key)
-def analyze_url_endpoint(
-    request: Request,
-    payload: UrlAnalyzeRequest,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Analyzes a URL with GARUDA's static URL analyzer.
-    Invalid input returns 422 (INVALID_URL) and nothing is saved.
-    If save=True, persists scans (scan_type=url), urls, analysis_results and threat_indicators.
-    If save=False, stores nothing.
-    """
-    return analyze_url(
-        db=db,
-        user_id=current_user.id,
-        url=payload.url,
-        save=payload.save,
+
+class UrlAnalyzeRequest(BaseModel):
+    url: str = Field(
+        ...,
+        min_length=1,
+        max_length=2048,
+        description="URL to analyze (1 to 2048 characters).",
     )
+    save: bool = Field(
+        default=True,
+        description="Whether to persist the scan and its results in the database.",
+    )
+
+    @field_validator("url")
+    @classmethod
+    def validate_non_blank(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError("URL cannot be empty or whitespace only.")
+        return v.strip()
+
+
+class QrAnalyzeRequest(BaseModel):
+    content: str = Field(
+        ...,
+        min_length=1,
+        max_length=4096,
+        description="QR payload content to analyze (1 to 4096 characters).",
+    )
+    save: bool = Field(
+        default=True,
+        description="Whether to persist the scan and its results in the database.",
+    )
+
+    @field_validator("content")
+    @classmethod
+    def validate_non_blank(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError("QR content cannot be empty or whitespace only.")
+        return v.strip()
+
+
+class RiskInfo(BaseModel):
+    score: int
+    level: str
+    label: str
+
+
+class CategoryInfo(BaseModel):
+    code: str
+    label: str
+
+
+class IndicatorInfo(BaseModel):
+    code: str
+    label: str
+    severity: str
+    weight: float
+    evidence: Optional[str] = None
+
+
+class LegitimacySignalInfo(BaseModel):
+    code: str
+    label: str
+    weight: float
+    evidence: Optional[str] = None
+
+
+class IntelStatusInfo(BaseModel):
+    source: str
+    status: str
+    details: Optional[Dict[str, Any]] = None
+
+
+class ExtractedEntities(BaseModel):
+    urls: List[Dict[str, Any]] = Field(default_factory=list)
+    qr: Optional[Dict[str, Any]] = None
+    upi: Optional[Dict[str, Any]] = None
+    phone: Optional[List[str]] = Field(default_factory=list)
+    language: Optional[str] = None
+
+
+class MessageDetail(BaseModel):
+    content: str
+    detected_language: Optional[str] = None
+
+
+class AnalysisResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    scan_id: Optional[str] = None
+    scan_type: str = "message"
+    risk: RiskInfo
+    confidence: float
+    verification_status: str
+    category: CategoryInfo
+    summary: str
+    indicators: List[IndicatorInfo] = Field(default_factory=list)
+    legitimacy_signals: List[LegitimacySignalInfo] = Field(default_factory=list)
+    recommendations: List[str] = Field(default_factory=list)
+    verify_steps: List[str] = Field(default_factory=list)
+    extracted: ExtractedEntities
+    intel: List[IntelStatusInfo] = Field(default_factory=list)
+    engine_version: str = "2.0.0"
+    created_at: Optional[datetime] = None
+    message: Optional[MessageDetail] = None
+
+
+class ScanListItem(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    scan_type: str
+    status: str
+    created_at: datetime
+    risk: RiskInfo
+    category: CategoryInfo
+    confidence: float
+    verification_status: str
+    summary: Optional[str] = None
+    content_preview: Optional[str] = None
+
+
+class ScanListResponse(BaseModel):
+    items: List[ScanListItem]
+    next_cursor: Optional[str] = None
+    has_more: bool

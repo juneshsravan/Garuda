@@ -20,3 +20,4 @@ pyyaml>=6.0.1
 slowapi>=0.1.9
 pytest>=8.1.1
 ruff>=0.4.1
+qrcode>=7.4.2
