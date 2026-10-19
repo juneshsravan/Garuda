@@ -19,9 +19,11 @@ from __future__ import annotations
 import ipaddress
 import re
 from dataclasses import dataclass, field
+from pathlib import Path
 from urllib.parse import urlsplit, parse_qs
 
 ENGINE_VERSION = "url-1.0.0"
+
 
 # ---------------------------------------------------------------------------
 # 1. Reference lists  (later these can move to YAML files / the database)
@@ -80,6 +82,24 @@ BETTING_BRANDS = {
     "dafabet", "4rabet", "10cric", "fairplay", "melbet", "mostbet", "1win",
     "bet365", "reddyanna", "dream11bet",
 }
+
+# Betting keywords for heuristic matching
+BETTING_KEYWORDS = (
+    "bet", "betting", "casino", "satta", "matka", "teenpatti", "aviator",
+    "rummy", "jackpot", "lottery", "cricketid", "cricket-id", "exchange",
+    "betbook", "777", "poker", "roulette", "slots",
+)
+
+# Unrelated non-gambling words that start or end with 'bet'
+UNRELATED_BET_PREFIXES = ("better", "between", "beta", "bethesda", "bethel", "beth", "betel")
+UNRELATED_BET_SUFFIXES = ("alphabet", "sherbet", "sorbet")
+
+# Path to public gambling blocklist
+DEFAULT_GAMBLING_BLOCKLIST_PATH = (
+    Path(__file__).resolve().parent.parent.parent / "data" / "gambling_domains.txt"
+)
+GAMBLING_BLOCKLIST_PATH = DEFAULT_GAMBLING_BLOCKLIST_PATH
+
 
 # Small starter adult list (the full blocklist loader adds thousands later)
 ADULT_KEYWORDS = {"porn", "xxx", "xvideos", "xnxx", "xhamster", "redtube"}
@@ -229,6 +249,81 @@ def band(score: int) -> tuple[str, str]:
         return "suspicious", "Suspicious"
     return "likely_safe", "Likely Safe"
 
+
+_blocklist_cache: dict[str, tuple[float, set[str]]] = {}
+
+
+def get_gambling_blocklist(filepath: Path | str | None = None) -> set[str]:
+    """Load domains from gambling blocklist text file with mtime caching."""
+    path_val = filepath if filepath is not None else GAMBLING_BLOCKLIST_PATH
+    if not path_val:
+        return set()
+    path = Path(path_val)
+    if not path.is_file():
+        return set()
+    try:
+        mtime = path.stat().st_mtime
+        key = str(path.resolve())
+        cached = _blocklist_cache.get(key)
+        if cached and cached[0] == mtime:
+            return cached[1]
+        domains = set()
+        with open(path, "r", encoding="utf-8", errors="ignore") as f:
+            for line in f:
+                line = line.strip().lower()
+                if line and not line.startswith("#"):
+                    parts = line.split()
+                    d = parts[-1] if parts else line
+                    domains.add(d.rstrip("."))
+        _blocklist_cache[key] = (mtime, domains)
+        return domains
+    except Exception:
+        return set()
+
+
+def find_betting_keywords(host: str) -> set[str]:
+    """
+    Finds BETTING_KEYWORDS matched as tokens or prefixes in the host.
+    Ensures unrelated words (e.g. 'alphabet.com' or 'betterhealth.in') do NOT match 'bet'.
+    """
+    host = host.lower().rstrip(".")
+    found = set()
+    # 1. Hyphenated keywords like 'cricket-id'
+    for kw in BETTING_KEYWORDS:
+        if "-" in kw:
+            pattern = rf"(^|[.\-_]){re.escape(kw)}([.\-_0-9]|$)"
+            if re.search(pattern, host):
+                found.add(kw)
+
+    # 2. Token and prefix matching across labels
+    labels = host.split(".")
+    for label in labels:
+        parts = re.split(r"[-_]", label)
+        for part in parts:
+            tokens = re.findall(r"[a-z]+|[0-9]+", part)
+            for token in tokens:
+                for kw in BETTING_KEYWORDS:
+                    if "-" in kw:
+                        continue
+                    if token == kw:
+                        found.add(kw)
+                    elif token.startswith(kw):
+                        if kw == "bet" and any(token.startswith(p) for p in UNRELATED_BET_PREFIXES):
+                            continue
+                        found.add(kw)
+                        rem = token[len(kw):]
+                        for kw2 in BETTING_KEYWORDS:
+                            if rem == kw2 or rem.startswith(kw2):
+                                found.add(kw2)
+                    elif token.endswith(kw):
+                        if kw == "bet":
+                            if any(token.endswith(s) for s in UNRELATED_BET_SUFFIXES):
+                                continue
+                            found.add(kw)
+
+    return found
+
+
 # ---------------------------------------------------------------------------
 # 4. The main function
 # ---------------------------------------------------------------------------
@@ -246,17 +341,38 @@ def analyze_url(raw: str) -> UrlResult:
     host = (parts.hostname or "").lower()
     reg = registered_domain(host)
     name = reg.split(".")[0]                       # "1xbet" from "1xbet.com"
+    tld = host.rsplit(".", 1)[-1] if "." in host else ""
     res = UrlResult(input=raw, valid=True, normalized_url=url, domain=host, registered_domain=reg)
     ind = res.indicators
     official = is_official(reg, host)
 
+    # Official domains must NEVER be marked as gambling or malicious
+    if official:
+        res.legitimacy_signals.append(
+            Indicator("LEGIT_OFFICIAL_DOMAIN", "Official website of a known organisation",
+                      "low", 0.0, reg))
+        res.verification_status = "matched_official_domain_list"
+        res.score = 0
+        res.level, res.label = "likely_safe", "Likely Safe"
+        res.summary = _summary(res, official=True)
+        res.recommendations = _advice(res)
+        return res
+
     # --- A. Reputation lists -------------------------------------------------
     host_tokens = set(re.split(r"[.\-]", host))
+    public_blocklist = get_gambling_blocklist()
+
     if name in BETTING_BRANDS or host_tokens & BETTING_BRANDS:
         res.category = "gambling"
         res.category_label = "Illegal Betting / Gambling Platform"
         res.verification_status = "matched_garuda_curated_betting_list"
         ind.append(Indicator("BLOCKLIST_GAMBLING", "Known online betting platform", "high", 0.85,
+                             reg))
+    elif reg in public_blocklist or host in public_blocklist:
+        res.category = "gambling"
+        res.category_label = "Illegal Betting / Gambling Platform"
+        res.verification_status = "matched_public_gambling_blocklist (public gambling blocklist)"
+        ind.append(Indicator("BLOCKLIST_GAMBLING", "Known online betting platform (public gambling blocklist)", "high", 0.85,
                              reg))
     elif any(k in host for k in ADULT_KEYWORDS):
         res.category = "adult"
@@ -264,86 +380,112 @@ def analyze_url(raw: str) -> UrlResult:
         res.verification_status = "matched_garuda_adult_keywords"
         ind.append(Indicator("BLOCKLIST_ADULT", "Adult website", "medium", 0.5, reg))
 
+    # --- Keyword heuristics for gambling -------------------------------------
+    betting_kws = find_betting_keywords(host)
+    if betting_kws:
+        has_risky_tld = tld in RISKY_TLDS
+        has_number_pattern = bool(re.search(r"777|365|\d{3,}", host))
+        if len(betting_kws) >= 2 or has_risky_tld or has_number_pattern:
+            kw_weight = 0.7
+            kw_sev = "high"
+        else:
+            kw_weight = 0.45
+            kw_sev = "medium"
+
+        res.category = "gambling"
+        res.category_label = "Illegal Betting / Gambling Platform"
+        if not res.verification_status or res.verification_status == "unverified":
+            res.verification_status = "matched_betting_keywords"
+
+        evidence_parts = [", ".join(sorted(betting_kws))]
+        if len(betting_kws) < 2:
+            if has_risky_tld:
+                evidence_parts.append(f"risky TLD '.{tld}'")
+            if has_number_pattern:
+                evidence_parts.append("number pattern")
+
+        ind.append(Indicator(
+            "URL_BETTING_KEYWORD",
+            "Web address contains online betting/gambling keywords",
+            kw_sev,
+            kw_weight,
+            " + ".join(evidence_parts),
+        ))
+
     # --- B. Structure checks (skipped for official domains) -----------------
-    if not official:
-        if _is_ip(host):
-            ind.append(Indicator("URL_IP_HOST", "Uses a raw IP address instead of a name",
-                                 "high", 0.5, host))
-        if host.startswith("xn--") or ".xn--" in host:
-            ind.append(Indicator("URL_PUNYCODE", "Uses special look-alike letters (punycode)",
-                                 "high", 0.55, host))
-        if "@" in (parts.netloc or ""):
-            ind.append(Indicator("URL_AT_TRICK", "Hides the real address using '@'",
-                                 "high", 0.5, parts.netloc))
-        if host.count(".") >= 4:
-            ind.append(Indicator("URL_DEEP_SUBDOMAINS", "Unusually many sub-domains",
-                                 "medium", 0.25, host))
-        tld = host.rsplit(".", 1)[-1]
-        if tld in RISKY_TLDS:
-            ind.append(Indicator("URL_RISKY_TLD", f"Domain ending '.{tld}' is often used in scams",
-                                 "medium", 0.25, "." + tld))
-        if reg in URL_SHORTENERS:
-            ind.append(Indicator("URL_SHORTENER", "Short link hides the real destination",
-                                 "low", 0.3, reg))
-        if parts.scheme == "http":
-            ind.append(Indicator("URL_NO_HTTPS", "Not encrypted (http instead of https)",
-                                 "low", 0.1, "http://"))
+    if _is_ip(host):
+        ind.append(Indicator("URL_IP_HOST", "Uses a raw IP address instead of a name",
+                             "high", 0.5, host))
+    if host.startswith("xn--") or ".xn--" in host:
+        ind.append(Indicator("URL_PUNYCODE", "Uses special look-alike letters (punycode)",
+                             "high", 0.55, host))
+    if "@" in (parts.netloc or ""):
+        ind.append(Indicator("URL_AT_TRICK", "Hides the real address using '@'",
+                             "high", 0.5, parts.netloc))
+    if host.count(".") >= 4:
+        ind.append(Indicator("URL_DEEP_SUBDOMAINS", "Unusually many sub-domains",
+                             "medium", 0.25, host))
+    if tld in RISKY_TLDS:
+        ind.append(Indicator("URL_RISKY_TLD", f"Domain ending '.{tld}' is often used in scams",
+                             "medium", 0.25, "." + tld))
+    if reg in URL_SHORTENERS:
+        ind.append(Indicator("URL_SHORTENER", "Short link hides the real destination",
+                             "low", 0.3, reg))
+    if parts.scheme == "http":
+        ind.append(Indicator("URL_NO_HTTPS", "Not encrypted (http instead of https)",
+                             "low", 0.1, "http://"))
 
-        # Brand impersonation: brand word in the domain, but not the official domain
-        variants = lookalike_variants(host)
-        for brand, real_domains in BRANDS.items():
-            if reg in real_domains:
-                continue
-            if any(brand in v for v in variants):
-                ind.append(Indicator("URL_BRAND_IMPERSONATION",
-                                     f"Uses the name '{brand.upper()}' but is not its official website",
-                                     "high", 0.65, host))
+    # Brand impersonation: brand word in the domain, but not the official domain
+    variants = lookalike_variants(host)
+    for brand, real_domains in BRANDS.items():
+        if reg in real_domains:
+            continue
+        if any(brand in v for v in variants):
+            ind.append(Indicator("URL_BRAND_IMPERSONATION",
+                                 f"Uses the name '{brand.upper()}' but is not its official website",
+                                 "high", 0.65, host))
+            break
+        # typo look-alikes like 'hdfcbnak' or 'flipkrat' (only for longer brands)
+        if len(brand) >= 5 and any(
+                abs(len(tok) - len(brand)) <= 1 and 0 < edit_distance(tok, brand) <= 1
+                for v in variants for tok in re.split(r"[.]", v) if tok):
+            ind.append(Indicator("URL_BRAND_LOOKALIKE",
+                                 f"Looks like a misspelling of '{brand.upper()}'",
+                                 "high", 0.65, host))
+            break
+
+    # Brand name hidden in the path of an IP or unknown site: 1.2.3.4/paytm/verify
+    path_l = parts.path.lower()
+    if not any(i.code.startswith("URL_BRAND") for i in ind):
+        for brand in BRANDS:
+            if re.search(rf"\b{brand}\b", path_l):
+                ind.append(Indicator("URL_BRAND_IN_PATH",
+                                     f"Mentions '{brand.upper()}' in the link but is not its website",
+                                     "medium", 0.3, parts.path))
                 break
-            # typo look-alikes like 'hdfcbnak' or 'flipkrat' (only for longer brands)
-            if len(brand) >= 5 and any(
-                    abs(len(tok) - len(brand)) <= 1 and 0 < edit_distance(tok, brand) <= 1
-                    for v in variants for tok in re.split(r"[.]", v) if tok):
-                ind.append(Indicator("URL_BRAND_LOOKALIKE",
-                                     f"Looks like a misspelling of '{brand.upper()}'",
-                                     "high", 0.65, host))
-                break
 
-        # Brand name hidden in the path of an IP or unknown site: 1.2.3.4/paytm/verify
-        path_l = parts.path.lower()
-        if not any(i.code.startswith("URL_BRAND") for i in ind):
-            for brand in BRANDS:
-                if re.search(rf"\b{brand}\b", path_l):
-                    ind.append(Indicator("URL_BRAND_IN_PATH",
-                                         f"Mentions '{brand.upper()}' in the link but is not its website",
-                                         "medium", 0.3, parts.path))
-                    break
+    # Words in the path that appear in phishing links
+    path_words = {w for w in re.split(r"[/\-_.?=&]", parts.path.lower()) if w}
+    hits = sorted(path_words & SUSPICIOUS_PATH_WORDS)
+    if hits and any(i.severity == "high" for i in ind):
+        ind.append(Indicator("URL_PHISHING_PATH", "Link path uses login/KYC/reward words",
+                             "medium", 0.2, "/" + "/".join(hits)))
 
-        # Words in the path that appear in phishing links
-        path_words = {w for w in re.split(r"[/\-_.?=&]", parts.path.lower()) if w}
-        hits = sorted(path_words & SUSPICIOUS_PATH_WORDS)
-        if hits and any(i.severity == "high" for i in ind):
-            ind.append(Indicator("URL_PHISHING_PATH", "Link path uses login/KYC/reward words",
-                                 "medium", 0.2, "/" + "/".join(hits)))
-
-        # Asking for secrets in the link itself
-        params = {k.lower() for k in parse_qs(parts.query).keys()}
-        bad = sorted(params & SUSPICIOUS_PARAMS)
-        if bad:
-            ind.append(Indicator("URL_SECRET_PARAM", "Link asks for a PIN/OTP/password",
-                                 "high", 0.5, "?" + "&".join(bad)))
-    else:
-        res.legitimacy_signals.append(
-            Indicator("LEGIT_OFFICIAL_DOMAIN", "Official website of a known organisation",
-                      "low", 0.0, reg))
-        res.verification_status = "matched_official_domain_list"
+    # Asking for secrets in the link itself
+    params = {k.lower() for k in parse_qs(parts.query).keys()}
+    bad = sorted(params & SUSPICIOUS_PARAMS)
+    if bad:
+        ind.append(Indicator("URL_SECRET_PARAM", "Link asks for a PIN/OTP/password",
+                             "high", 0.5, "?" + "&".join(bad)))
 
     # --- C. Score ------------------------------------------------------------
-    res.score = round(100 * noisy_or([i.weight for i in ind]))
+    res.score = min(99, round(100 * noisy_or([i.weight for i in ind])))
     res.level, res.label = band(res.score)
     if res.category == "none" and any(i.severity == "high" for i in ind):
         res.category, res.category_label = "phishing", "Possible Phishing / Fake Website"
     elif res.category == "none" and ind:
         res.category, res.category_label = "suspicious_link", "Suspicious Link"
+
 
     # --- D. Explanation + advice ----------------------------------------------
     res.summary = _summary(res, official)
