@@ -12,8 +12,9 @@ import { LoadingState } from "@/components/ui/states";
 import { registerSchema, RegisterFormData } from "@/lib/validations/auth";
 import { Eye, EyeOff, AlertCircle, Loader2, UserPlus, Shield } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { IntroGate } from "@/components/intro/IntroGate";
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter();
   const { register: registerUser, user, isLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
@@ -266,5 +267,13 @@ export default function RegisterPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <IntroGate>
+      <RegisterForm />
+    </IntroGate>
   );
 }
