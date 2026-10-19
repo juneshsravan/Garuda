@@ -358,6 +358,20 @@ export const authApi = {
       method: "GET",
     });
   },
+
+  verifyEmail(data: { email: string; code: string }): Promise<MessageResponse> {
+    return apiRequest<MessageResponse>("/api/auth/verify-email", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+  resendCode(data: { email: string }): Promise<MessageResponse> {
+    return apiRequest<MessageResponse>("/api/auth/resend-code", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
 };
 
 export const scanApi = {

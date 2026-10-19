@@ -68,12 +68,23 @@ class Settings(BaseSettings):
     RATE_LIMIT_ANALYZE: str = "30/minute"
     MAX_QR_UPLOAD_MB: int = 5
 
-    EMAIL_VERIFICATION_REQUIRED: bool = False
+    EMAIL_VERIFICATION_REQUIRED: bool = True
+    ENVIRONMENT: Optional[str] = None
     SMTP_HOST: str = "smtp.gmail.com"
     SMTP_PORT: int = 587
     SMTP_USER: str = ""
     SMTP_PASSWORD: str = ""
+    SMTP_APP_PASSWORD: Optional[str] = None
     EMAIL_FROM: str = ""
+
+    @property
+    def effective_smtp_password(self) -> str:
+        return self.SMTP_APP_PASSWORD or self.SMTP_PASSWORD or ""
+
+    @property
+    def is_development(self) -> bool:
+        env = (self.ENVIRONMENT or self.APP_ENV or "development").lower()
+        return env in ("development", "dev", "local", "test")
 
     # Locate backend/.env whether run from backend/ or project root
     model_config = SettingsConfigDict(

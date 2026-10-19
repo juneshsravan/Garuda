@@ -1,18 +1,23 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { GarudaLogo } from "@/components/brand/GarudaLogo";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { LoadingState } from "@/components/ui/states";
 import { verifyEmailSchema, VerifyEmailFormData } from "@/lib/validations/auth";
 import { MailCheck, AlertCircle, CheckCircle2, Loader2, RefreshCw, ArrowRight } from "lucide-react";
+import { authApi, ApiClientError } from "@/lib/api-client";
 
-export default function VerifyEmailPage() {
+function VerifyEmailForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const emailParam = searchParams.get("email");
+
   const [countdown, setCountdown] = useState<number>(0);
   const [resendStatus, setResendStatus] = useState<string | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
@@ -23,16 +28,23 @@ export default function VerifyEmailPage() {
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<VerifyEmailFormData>({
     resolver: zodResolver(verifyEmailSchema),
     defaultValues: {
-      email: "",
+      email: emailParam || "",
       code: "",
     },
   });
 
   const emailValue = watch("email");
+
+  useEffect(() => {
+    if (emailParam) {
+      setValue("email", emailParam);
+    }
+  }, [emailParam, setValue]);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -44,17 +56,14 @@ export default function VerifyEmailPage() {
 
   const onVerify = async (data: VerifyEmailFormData) => {
     setApiError(null);
+    setResendStatus(null);
     setIsSubmitting(true);
 
     try {
-      // MOCK: Built against ARCHITECTURE Section 6 POST /api/auth/verify-email
-      await new Promise((resolve) => setTimeout(resolve, 800));
-
-      if (data.code === "000000") {
-        setApiError("Invalid or expired verification code (5 attempts allowed).");
-        setIsSubmitting(false);
-        return;
-      }
+      await authApi.verifyEmail({
+        email: data.email,
+        code: data.code.trim(),
+      });
 
       setVerifiedSuccess(true);
       setIsSubmitting(false);
@@ -62,9 +71,13 @@ export default function VerifyEmailPage() {
         router.push("/login");
       }, 2000);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Verification request failed.";
-      setApiError(message);
       setIsSubmitting(false);
+      if (err instanceof ApiClientError) {
+        setApiError(err.message);
+      } else {
+        const message = err instanceof Error ? err.message : "Verification request failed.";
+        setApiError(message);
+      }
     }
   };
 
@@ -77,11 +90,19 @@ export default function VerifyEmailPage() {
     setApiError(null);
     setResendStatus("Dispatching new code...");
 
-    // MOCK: Built against ARCHITECTURE Section 6 POST /api/auth/resend-code (1/min limit)
-    setTimeout(() => {
-      setResendStatus("A fresh 6-digit verification code has been dispatched.");
+    try {
+      const res = await authApi.resendCode({ email: emailValue });
+      setResendStatus(res.message || "A fresh 6-digit verification code has been dispatched.");
       setCountdown(60); // 60s cooldown
-    }, 700);
+    } catch (err: unknown) {
+      setResendStatus(null);
+      if (err instanceof ApiClientError) {
+        setApiError(err.message);
+      } else {
+        const message = err instanceof Error ? err.message : "Failed to dispatch verification code.";
+        setApiError(message);
+      }
+    }
   };
 
   return (
@@ -146,6 +167,10 @@ export default function VerifyEmailPage() {
                     placeholder="analyst@organization.in"
                     error={!!errors.email}
                     {...register("email")}
+                    onChange={(e) => {
+                      register("email").onChange(e);
+                      if (apiError) setApiError(null);
+                    }}
                   />
                   {errors.email && (
                     <p className="text-[11px] font-mono text-destructive mt-1">
@@ -177,6 +202,10 @@ export default function VerifyEmailPage() {
                     className="font-mono text-center tracking-widest text-lg h-12"
                     error={!!errors.code}
                     {...register("code")}
+                    onChange={(e) => {
+                      register("code").onChange(e);
+                      if (apiError) setApiError(null);
+                    }}
                   />
                   {errors.code && (
                     <p className="text-[11px] font-mono text-destructive mt-1">
@@ -236,5 +265,19 @@ export default function VerifyEmailPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <LoadingState message="Loading verification console..." />
+        </div>
+      }
+    >
+      <VerifyEmailForm />
+    </Suspense>
   );
 }

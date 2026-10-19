@@ -77,7 +77,7 @@ export default function RegisterPage() {
         return;
       }
 
-      router.push("/dashboard");
+      router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Registration request failed.";
       setApiError(message);

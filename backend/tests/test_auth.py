@@ -5,6 +5,7 @@ from fastapi import Depends
 from sqlalchemy import select
 
 from app.api.deps import require_admin
+from app.core.config import settings
 from app.main import app
 from app.models.platform import AuditLog
 from app.models.user import Session as UserSession, User
@@ -167,6 +168,10 @@ def test_login_success(client, db):
         json={"email": "login.test@example.com", "password": "MySecretPassword123", "full_name": "Login Tester"},
         headers=headers,
     )
+
+    user_db = db.execute(select(User).where(User.email == "login.test@example.com")).scalar_one()
+    user_db.is_email_verified = True
+    db.commit()
 
     resp_login = client.post(
         "/api/auth/login",
@@ -335,6 +340,7 @@ def test_require_admin_dependency(client, db):
         full_name="Admin Boss",
         role="admin",
         is_active=True,
+        is_email_verified=True,
     )
     db.add(admin_user)
     db.commit()
@@ -352,8 +358,9 @@ def test_require_admin_dependency(client, db):
     assert resp_admin.json()["message"] == "Admin authorized"
 
 
-def test_email_verification_setting_default_active_unverified(client, db):
+def test_email_verification_setting_default_active_unverified(client, db, monkeypatch):
     """Rule: When EMAIL_VERIFICATION_REQUIRED=false, new accounts are active (is_active=true) but email_verified_at must stay null. Login succeeds."""
+    monkeypatch.setattr(settings, "EMAIL_VERIFICATION_REQUIRED", False)
     headers = {"X-Forwarded-For": "203.0.113.11"}
     reg_resp = client.post(
         "/api/auth/register",
