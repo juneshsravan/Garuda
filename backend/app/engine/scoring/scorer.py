@@ -70,7 +70,7 @@ def calculate_score(
     # Critical eligibility: >= 85 AND (intel hit OR credential/payment + impersonation)
     has_impersonation = any("IMPERSONATION" in ind.code for ind in risk_indicators)
     has_cred_or_fee = any(
-        ind.code in ("CRED_OTP_REQUEST", "CRED_PIN_REQUEST", "FIN_LOTTERY_ADVANCE_FEE", "FIN_INSTANT_LOAN_UPFRONT")
+        ind.code in ("CRED_OTP_REQUEST", "CRED_PIN_REQUEST", "FIN_LOTTERY_ADVANCE_FEE", "FIN_INSTANT_LOAN_UPFRONT", "PRIZE_MONEY_CLAIM")
         for ind in risk_indicators
     )
     is_critical_eligible = (intel_hits > 0) or (has_impersonation and has_cred_or_fee)

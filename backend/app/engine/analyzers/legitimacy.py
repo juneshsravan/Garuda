@@ -76,7 +76,11 @@ LEGITIMACY_RULES = [
         "label": "Legitimate transaction debit/credit notification or service receipt",
         "weight": 0.55,
         "patterns": [
+            r"\b(?:debited\s+from|credited\s+to)\s+(?:your\s+)?(?:a/?c|account|card|wallet)\b",
             r"\b(?:debited\s+from|credited\s+to)\s+(?:your\s+)?a/?c\b",
+            r"\bcashback\s+credited\s+to\s+(?:your\s+)?(?:card|account|a/?c|wallet)\b",
+            r"\bcredited\s+with\s+(?:rs\.?|[₹$])?[\d,]+(?:\s+salary)?\b",
+            r"\baccount\s+was\s+credited\s+with\b",
             r"\bavl\s+bal\s+(?:rs\.?|[₹$])?[\d,]+\b",
             r"\byour\s+emi\s+of\s+.*is\s+due\b",
             r"\bpaid\s+successfully\b",
@@ -174,6 +178,7 @@ LEGITIMACY_RULES = [
         "patterns": [
             r"\bearned\s+[₹$]?\d+\s+cashback\s+on\s+your\s+recharge\b",
             r"\bhas\s+been\s+added\s+to\s+your\s+wallet\b",
+            r"\b(?:cashback|reward)\s+credited\s+to\s+(?:your\s+)?(?:card|account|a/?c|wallet)\b",
         ],
     },
 ]

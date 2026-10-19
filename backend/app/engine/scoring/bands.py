@@ -50,7 +50,7 @@ def determine_category(indicators: list, risk_level: str) -> Dict[str, str]:
         return {"code": "fake_job_fraud", "label": "Part-Time Job / Task Fraud"}
     if "FIN_INSTANT_LOAN_UPFRONT" in codes:
         return {"code": "loan_advance_fee", "label": "Instant Loan / Advance Fee Scam"}
-    if "FIN_LOTTERY_ADVANCE_FEE" in codes:
+    if "FIN_LOTTERY_ADVANCE_FEE" in codes or "PRIZE_MONEY_CLAIM" in codes:
         return {"code": "lottery_scam", "label": "Lottery / Lucky Draw Fee Fraud"}
     if "FIN_TAX_REFUND_PHISH" in codes:
         return {"code": "tax_refund_phishing", "label": "Tax Refund Phishing Scam"}
