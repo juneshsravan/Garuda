@@ -581,9 +581,12 @@ URGENCY:
 REWARD:
   en:
   - won
+  - win
   - winner
   - prize
+  - prise
   - lottery
+  - lotery
   - lucky draw
   - reward
   - reward points
@@ -592,6 +595,7 @@ REWARD:
   - bonus
   - gift
   - congrats
+  - congratulation
   - congratulations
   - selected
   - credit hoga
@@ -607,6 +611,9 @@ REWARD:
   - बोनस
   te:
   - గెలుచుకున్నారు
+  - గెలిచారు
+  - గెలిచావు
+  - వచ్చింది
   - బహుమతి
   - లాటరీ
   - క్యాష్‌బ్యాక్
@@ -615,6 +622,10 @@ REWARD:
   te_rom:
   - vachindi
   - gelicharu
+  - gelichav
+  - win aiyaru
+  - win ayyaru
+  - win ayaru
   - cashback
   - lottery
   - bahumathi
@@ -623,6 +634,10 @@ REWARD:
   hinglish:
   - inaam
   - jeeta
+  - jeete
+  - win
+  - lotery
+  - prise
   - badhai
   - lottery
   - cashback

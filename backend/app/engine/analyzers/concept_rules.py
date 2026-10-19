@@ -40,7 +40,7 @@ ENGLISH_WORDS = {
     "block", "blocked", "blocking", "suspend", "suspended", "suspension", "deactivate", "deactivated",
     "expire", "expired", "disconnect", "disconnected", "disconnection", "close", "closed", "freeze", "frozen",
     "today", "tonight", "now", "immediately", "urgent", "urgently", "chance", "seats", "hours",
-    "won", "winner", "prize", "reward", "lottery", "lucky", "cashback", "refund", "bonus", "gift", "congrats", "congratulations", "selected",
+    "won", "win", "winner", "prize", "reward", "lottery", "lucky", "cashback", "refund", "bonus", "gift", "congrats", "congratulations", "selected",
     "customs", "police", "court", "officer", "board", "cell",
     "fee", "fees", "charges", "charge", "gst", "tax", "deposit", "payment",
     "earn", "earning", "daily", "week", "task", "tasks", "returns",
@@ -50,6 +50,7 @@ ENGLISH_WORDS = {
     "otp", "pin", "pan", "sim", "aadhaar", "kyc", "upi", "cvv", "sms", "cbi", "rbi", "trai",
     "click", "open", "call", "whatsapp", "telegram", "link", "visit", "redeem", "contact",
     "share", "enter", "provide", "submit", "update", "verify",
+    "amount",
 }
 
 
@@ -162,9 +163,11 @@ PROTECTIVE_ADVICE_PATTERNS = [
 
 
 AMOUNT_REGEX = re.compile(
-    r"(?:[₹$€£]|rs\.?|inr)\s*[\d,]+(?:\.\d+)?|\b\d+\s*(?:lakh|crore|thousand|bonus)\b|"
-    r"\b(?:charges|charge|fee|fees|bonus|credit|refund|loan|pay|send|bhejo|pampandi|kattandi|daalo|deposit|earning|earn|cashback|prize|reward|minimum|kattiri|pavathisi|seluthungal|kattungal|adakkuka|nalkuka)\s+(?:of\s+)?(\d{3,}(?:,\d{3})*)\b|"
-    r"\b(\d{3,}(?:,\d{3})*)\s+(?:charges|charge|fee|fees|bonus|credit|refund|loan|bhejo|pampandi|kattandi|deposit|cashback|per\s+week|per\s+day|daily|kattiri|pavathisi|seluthungal|adakkuka)\b|"
+    r"(?:[₹$€£]|rs\.?|inr|rupees?|rupaye?|rupayalu|roopayalu)\s*[\d,]+(?:\.\d+)?|"
+    r"[\d,]+(?:\.\d+)?\s*(?:[₹$€£]|rs\.?|inr|rupees?|rupaye?|rupayalu|roopayalu)\b|"
+    r"\b\d+\s*(?:lakh|crore|thousand|bonus|lakhs|crores)\b|"
+    r"\b(?:amount|ammount|amout|charges|charge|fee|fees|bonus|credit|refund|loan|pay|send|bhejo|pampandi|kattandi|daalo|deposit|earning|earn|cashback|prize|reward|minimum|kattiri|pavathisi|seluthungal|kattungal|adakkuka|nalkuka)\s+(?:of\s+)?(\d{3,}(?:,\d{3})*)\b|"
+    r"\b(\d{3,}(?:,\d{3})*)\s+(?:amount|ammount|amout|charges|charge|fee|fees|bonus|credit|refund|loan|bhejo|pampandi|kattandi|deposit|cashback|per\s+week|per\s+day|daily|kattiri|pavathisi|seluthungal|adakkuka)\b|"
     r"(?:ఫీజు|ఛార్జీలు|బోనస్|క్రెడిట్|రిఫండ్|లోన్|పంపండి|కట్టండి|డిపాజిట్)\s*(\d{3,}(?:,\d{3})*)|"
     r"(\d{3,}(?:,\d{3})*)\s*(?:ఫీజు|ఛార్జీలు|బోనస్|క్రెడిట్|రిఫండ్|లోన్|పంపండి|కట్టండి|డిపాజిట్)|"
     r"(?:फीस|चार्ज|शुल्क|बोनस|क्रेडिट|रिफंड|लोन|भेजें|भेजो|जमा|डिपॉजिट)\s*(\d{3,}(?:,\d{3})*)|"
@@ -299,6 +302,91 @@ MONEY_REQUEST_PATTERNS = [
     r"\bhelp\.urgent@ybl\b",
 ]
 
+WIN_WORD_PATTERNS = [
+    # English & misspellings: won, win, winner, congrats, congratulation, lotery, prise, etc.
+    r"\b(?:won|win|winner|congrats|congratulation|congratulations|lottery|lotery|prize|prise|reward|lucky\s+draw)\b",
+    # Hindi / Hinglish: jeeta, jeete, inaam, etc.
+    r"\b(?:jeeta|jeete|inaam|inam|badhai)\b",
+    r"(?:जीता|जीते|बधाई|इनाम|लॉटरी|पुरस्कार)",
+    # Telugu / Romanized Telugu: gelicharu, gelichav, win aiyaru, vachindi
+    r"\b(?:gelicharu|gelichav|win\s+aiyaru|win\s+ayyaru|win\s+ayaru|win\s+aiyyaru|vachindi|bahumathi)\b",
+    r"(?:గెలుచుకున్నారు|గెలిచారు|గెలిచావు|వచ్చింది|బహుమతి|లాటరీ)",
+    # Kannada, Tamil, Malayalam equivalents
+    r"\b(?:geddidiri|gelidiri|vetripettrirgal|vijayichu|bahumaana|parisu|sammaanam)\b",
+    r"(?:ಗೆದ್ದಿದ್ದೀರಿ|ಬಹುಮಾನ|ಲಾಟರಿ|வெற்றி\s*பெற்றுள்ளீர்கள்|பரிசு|லாட்டரி|விஜയിച്ചു|സമ്മാനം|ലോട്ടറി)",
+]
+
+MONEY_AMOUNT_PATTERNS = [
+    # Currency symbols and names (rupees, rs, ₹, inr, lakh, crore, etc.)
+    r"(?:[₹$€£]|rs\.?|inr|rupees?|rupaye?|rupayalu|roopayalu)\s*[\d,]+(?:\.\d+)?",
+    r"[\d,]+(?:\.\d+)?\s*(?:[₹$€£]|rs\.?|inr|rupees?|rupaye?|rupayalu|roopayalu)\b",
+    r"\b(?:[₹$€£]|rs\.?|inr|rupees?|rupaye?|rupayalu|roopayalu)\b",
+    r"\b\d+\s*(?:lakh|crore|thousand|bonus|lakhs|crores)\b",
+    r"\b(?:lakh|crore|thousand|lakhs|crores)\b",
+    # Amount keywords and misspellings: amount, ammount, amout
+    r"\b(?:amount|ammount|amout)\b",
+    # Indic currency words
+    r"(?:రూపాయలు|రూ\.?|మొత్తం|रुपये|रुपए|रु\.?|रकम|ಕೋಟಿ|ಲಕ್ಷ|ರೂಪಾಯಿ|ரூபாய்|தொகை|രൂപ|തുക)",
+]
+
+ACTION_DETAIL_PATTERNS = [
+    # Claim / Redeem
+    r"\b(?:claim|claiming|claimed|redeem|redeeming|collect|receive|get|paane|teesukondi)\b",
+    r"(?:క్లెయిమ్|తీసుకోండి|क्लेम|पाएं|पाने|ಪಡೆಯಿರಿ|பெறுங்கள்|നേടുക)",
+    # Pay / Fee / Deposit
+    r"\b(?:pay|payment|paying|deposit|bharo|bhejo|kattandi|kattu|pampandi|pampu|transfer|kattiri|pavathisi|seluthungal|kattungal|adakkuka|nalkuka)\b",
+    r"\b(?:fee|fees|charges?|tax|gst|processing|deposit)\b",
+    r"(?:చెల్లించండి|కట్టండి|ఫీజు|డిపాజిట్|భాగస్వామ్యం|भुगतान|पे|फीस|डिपॉजिट|ಪಾವತಿಸಿ|ಶುಲ್ಕ|செலுத்துங்கள்|கட்டணம்|അടയ്ക്കുക|ഫീസ്)",
+    # Link / URL
+    r"\b(?:link|url|website|site|portal|http|https|www|\.com|\.in|\.top|\.xyz|\.co|\.org|\.net)\b",
+    r"(?:లింక్|लिंक|ಲಿಂಕ್|லிங்க்|ലിങ്ക്)",
+    # Call / Contact
+    r"\b(?:call|calling|contact|whatsapp|telegram|officer|dial|helpline|phone)\b",
+    r"(?:కాల్|సంప్రదించండి|कॉल|संपर्क|ಕರೆ|ಸಂಪರ್ಕಿಸಿ|அழைக்கவும்|தொடர்பு|വിളിക്കുക|ബന്ധപ്പെടുക)",
+    # Click / Open / Visit
+    r"\b(?:click|clicking|open|opening|visit|visiting|tap|tapping|chesi|karke|karein|maadi|seiyavum|cheyyuka)\b",
+    r"(?:క్లిక్|ఓపెన్|క్లిక్\s*చేయండి|క్లిక్\s*చేసి|క్లిక్\s*చెయ్యండి|क्लिक|खोलें|ಕ್ಲಿಕ್|ತೆರೆಯಿರಿ|கிளிக்|திறக்கவும்|ക്ലിക്ക്|തുറക്കുക)",
+    # Share / Enter / Submit
+    r"\b(?:share|sharing|enter|entering|provide|providing|submit|submitting|cheppandi|batao|saajha|daalo|dalo|ivvandi)\b",
+    r"(?:షేర్|చెప్పండి|నమోదు|ఇవ్వండి|షేర్\s*చేయండి|షేర్\s*చెయ్యండి|शेयर|डालो|दर्ज|भेजें|बताओ|ಹಂಚಿಕೊಳ್ಳಿ|ನಮೂದಿಸಿ|பகிரவும்|உள்ளிடவும்|പങ്കിടുക|നൽകുക)",
+]
+
+
+def find_money_match(text: str) -> Optional[Tuple[str, int, int]]:
+    """
+    Finds money indicators:
+    - Currency keywords: rupees, rs, ₹, inr, lakh, crore
+    - Amount keywords and misspellings: amount, ammount, amout
+    - Any number >= 1000 (e.g. 1000, 10000, 50,000)
+    """
+    for pat in MONEY_AMOUNT_PATTERNS:
+        m = re.search(pat, text, re.IGNORECASE)
+        if m:
+            return m.group(0), m.start(), m.end()
+
+    # Standalone number >= 1000
+    for m in re.finditer(r"\b\d{1,3}(?:,\d{2,3})+\b|\b\d{4,}\b", text):
+        raw_num = m.group(0).replace(",", "")
+        try:
+            val = int(raw_num)
+            # Avoid matching 10-digit phone numbers starting with 6-9
+            if 1000 <= val < 1000000000:
+                if len(raw_num) == 10 and raw_num[0] in "6789":
+                    continue
+                return m.group(0), m.start(), m.end()
+        except ValueError:
+            pass
+
+    return None
+
+
+def find_win_word_match(text: str) -> Optional[Tuple[str, int, int]]:
+    for pat in WIN_WORD_PATTERNS:
+        m = re.search(pat, text, re.IGNORECASE)
+        if m:
+            return m.group(0), m.start(), m.end()
+    return None
+
 
 def analyze_concept_combinations(search_text: str, original_text: str) -> List[Indicator]:
     """
@@ -379,6 +467,11 @@ def analyze_concept_combinations(search_text: str, original_text: str) -> List[I
     # COMBINATION RULES
     # -------------------------------------------------------------
 
+    # Win word match & Money match
+    win_match = find_win_word_match(search_text)
+    money_match_amt = find_money_match(search_text)
+    is_prize_money_claim = bool(win_match and money_match_amt)
+
     # A. ACCOUNT_THREAT = ASSET + THREAT (unless used as protective advice)
     if asset_match and threat_match and not is_protective_threat:
         has_scam_context = True
@@ -394,25 +487,55 @@ def analyze_concept_combinations(search_text: str, original_text: str) -> List[I
             )
         )
 
-    # B. REWARD_LURE = REWARD + (AMOUNT or FEE_DEMAND or CONTACT_CTA)
-    if reward_match and (amount_match or fee_match or contact_match or "lottery" in search_text or "prize" in search_text or "cashback" in search_text):
+    # B1. PRIZE_MONEY_CLAIM: WIN word + MONEY amount
+    # WIN word (won, win, winner, jeeta, jeete, gelicharu, gelichav, win aiyaru, vachindi) +
+    # MONEY amount (rupees, rs, ₹, inr, lakh, crore, a number >= 1000, "amount" and misspellings "ammount", "amout")
+    if is_prize_money_claim:
         has_scam_context = True
-        ev_reward = extract_evidence_snippet(original_text, reward_match[1], reward_match[2])
-        is_active_lure = bool(fee_match or contact_match or "lottery" in search_text or "prize" in search_text or "claim" in search_text or "won" in search_text or "గెలుచుకున్నారు" in search_text)
-        weight = 0.50 if is_active_lure else 0.35
-        severity = "high" if is_active_lure else "low"
+        ev_win = extract_evidence_snippet(original_text, win_match[1], win_match[2])
+        ev_mon = extract_evidence_snippet(original_text, money_match_amt[1], money_match_amt[2])
+        has_action = bool(
+            fee_match
+            or cred_match
+            or contact_match
+            or any(re.search(pat, search_text, re.IGNORECASE) for pat in ACTION_DETAIL_PATTERNS)
+        )
+        sev = "high" if has_action else "medium"
+        wt = 0.65 if has_action else 0.50
         indicators.append(
             Indicator(
-                code="REWARD_LURE",
-                label="Unsolicited reward, lottery, or prize lure",
-                severity=severity,
-                weight=weight,
-                evidence=ev_reward,
+                code="PRIZE_MONEY_CLAIM",
+                label="Unsolicited prize, lottery, or money winning claim",
+                severity=sev,
+                weight=wt,
+                evidence=f"{ev_win} + {ev_mon}",
             )
         )
+    # B2. REWARD_LURE = REWARD + (AMOUNT or FEE_DEMAND or CONTACT_CTA)
+    elif reward_match and (amount_match or fee_match or contact_match or "lottery" in search_text or "prize" in search_text or "cashback" in search_text):
+        # Exclude legitimate credit notifications without coercive action (e.g., "cashback credited to your card")
+        is_credit_alert = bool(
+            re.search(r"\b(?:cashback|refund|reward)\s+credited\s+to\b|\bcredited\s+to\s+(?:your\s+)?(?:card|account|a/?c|wallet)\b|\bhas\s+been\s+added\s+to\s+your\s+wallet\b", search_text)
+        ) and not (fee_match or contact_match or cred_match)
 
-    # C. ADVANCE_FEE = FEE_DEMAND + (REWARD or THREAT or AUTHORITY or INVESTMENT_JOB or AMOUNT or ASSET)
-    if fee_match and (reward_match or threat_match or auth_match or inv_match or earning_match or amount_match or task_match or asset_match):
+        if not is_credit_alert:
+            has_scam_context = True
+            ev_reward = extract_evidence_snippet(original_text, reward_match[1], reward_match[2])
+            is_active_lure = bool(fee_match or contact_match or "lottery" in search_text or "prize" in search_text or "claim" in search_text or "won" in search_text or "గెలుచుకున్నారు" in search_text)
+            weight = 0.50 if is_active_lure else 0.35
+            severity = "high" if is_active_lure else "low"
+            indicators.append(
+                Indicator(
+                    code="REWARD_LURE",
+                    label="Unsolicited reward, lottery, or prize lure",
+                    severity=severity,
+                    weight=weight,
+                    evidence=ev_reward,
+                )
+            )
+
+    # C. ADVANCE_FEE = FEE_DEMAND + (REWARD or THREAT or AUTHORITY or INVESTMENT_JOB or AMOUNT or ASSET or PRIZE_CLAIM)
+    if fee_match and (reward_match or threat_match or auth_match or inv_match or earning_match or amount_match or task_match or asset_match or is_prize_money_claim):
         has_scam_context = True
         ev_fee = extract_evidence_snippet(original_text, fee_match[1], fee_match[2])
         indicators.append(
