@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, Depends, File, Form, Request, UploadFile, status
 from sqlalchemy.orm import Session
 
@@ -103,6 +104,7 @@ def analyze_qr_endpoint(
         user_id=current_user.id,
         content=payload.content,
         save=payload.save,
+        context=payload.context,
     )
 
 
@@ -120,6 +122,7 @@ async def analyze_qr_image_endpoint(
     request: Request,
     file: UploadFile = File(...),
     save: bool = Form(default=True),
+    context: Optional[str] = Form(default=None),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -146,9 +149,18 @@ async def analyze_qr_image_endpoint(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         )
 
+    clean_context = None if not context or context.strip() in ("", "null", "none") else context.strip()
+    if clean_context and clean_context not in ("known_payee", "receive_money", "stranger_request"):
+        raise AppException(
+            code="INVALID_CONTEXT",
+            message="Invalid context value. Must be 'known_payee', 'receive_money', or 'stranger_request'.",
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        )
+
     return analyze_qr(
         db=db,
         user_id=current_user.id,
         content=content,
         save=save,
+        context=clean_context,
     )

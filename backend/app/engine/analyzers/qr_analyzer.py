@@ -130,12 +130,24 @@ class QrResult:
         indicators_list = [i.__dict__ if hasattr(i, "__dict__") else i for i in self.indicators]
         signals_list = [i.__dict__ if hasattr(i, "__dict__") else i for i in self.legitimacy_signals]
 
-        if signals_list or any(i.get("code", "").startswith("BLOCKLIST") for i in indicators_list):
+        has_blocklist = any(i.get("code", "").startswith("BLOCKLIST") for i in indicators_list)
+        has_official_allowlist = (
+            self.qr_type == "url"
+            and any(s.get("code", "").startswith("ALLOWLIST") for s in signals_list)
+        )
+
+        if has_blocklist or has_official_allowlist:
             confidence = 0.90
         elif indicators_list:
             confidence = 0.75
         else:
+            # When there are no indicators (only legitimacy signals like a common PSP handle),
+            # confidence must be 0.5, not 0.9. A normal UPI ID does not prove the payee is genuine.
             confidence = 0.50
+
+        verification_status = self.verification_status
+        if not indicators_list and (self.qr_type == "upi" or verification_status in ("standard_psp_handle", "unverified", "")):
+            verification_status = "no_warning_signs_found"
 
         return {
             "scan_type": "qr",
@@ -145,7 +157,7 @@ class QrResult:
                 "label": self.label,
             },
             "confidence": confidence,
-            "verification_status": self.verification_status,
+            "verification_status": verification_status,
             "category": {
                 "code": self.category,
                 "label": self.category_label,
@@ -165,7 +177,7 @@ class QrResult:
             "intel": [
                 {
                     "source": "garuda_lists",
-                    "status": "matched" if self.verification_status != "unverified" else "not_found",
+                    "status": "matched" if verification_status not in ("unverified", "no_warning_signs_found") else "not_found",
                 }
             ],
             "engine_version": self.engine_version,
@@ -273,7 +285,7 @@ def _is_web_link(text: str) -> bool:
     return bool(domain_pattern.match(cleaned))
 
 
-def analyze_qr_content(content: str) -> QrResult:
+def _analyze_qr_content_base(content: str) -> QrResult:
     """
     Analyzes QR payload content:
     - starts with upi:// -> analyze_upi
@@ -386,7 +398,7 @@ def analyze_qr_content(content: str) -> QrResult:
             legitimacy_signals=legit_signals,
             recommendations=recs,
             verify_steps=QR_VERIFY_STEPS,
-            verification_status="unverified" if indicators else u_res.verification_status,
+            verification_status="unverified" if indicators else "no_warning_signs_found",
             upi_data={"pa": u_res.pa, "pn": u_res.pn, "am": u_res.am, "tn": u_res.tn},
         )
 
@@ -535,17 +547,121 @@ def analyze_qr_content(content: str) -> QrResult:
     )
 
 
+
+def _apply_context(res: QrResult, context: str | None = None) -> QrResult:
+    """
+    Augments QR analysis result with user-reported scanning context.
+    - receive_money: QR codes can only SEND money, claiming to receive is a scam.
+    - stranger_request: Paying on instruction of a caller/stranger adds moderate risk.
+    - known_payee / null: no change.
+    """
+    if not res.valid or not context or context in ("known_payee", "none", "null", ""):
+        return res
+
+    context_indicator: Indicator | None = None
+    if context == "receive_money":
+        context_indicator = Indicator(
+            code="QR_RECEIVE_MONEY_CLAIM",
+            label="You were told scanning will give you money - QR codes can only SEND money",
+            severity="high",
+            weight=0.85,
+            evidence="User indicated they were told scanning will receive money, refund, or prize",
+        )
+    elif context == "stranger_request":
+        context_indicator = Indicator(
+            code="QR_STRANGER_REQUEST",
+            label="A stranger or caller asked you to scan and pay",
+            severity="medium",
+            weight=0.4,
+            evidence="User indicated a stranger or caller asked them to scan and pay",
+        )
+
+    if context_indicator is None:
+        return res
+
+    if not any(i.code == context_indicator.code for i in res.indicators):
+        res.indicators.append(context_indicator)
+
+    # When indicators exist, clear benign legitimacy signals
+    res.legitimacy_signals = []
+
+    res.score = round(100 * noisy_or([i.weight for i in res.indicators]))
+    res.level, res.label = band(res.score)
+
+    if res.qr_type == "upi":
+        cat_code = "upi_fraud" if res.level == "high" else (
+            "suspicious_upi" if res.level in ("medium", "suspicious") else "no_warning_signs"
+        )
+        res.category = cat_code
+        res.category_label = {
+            "upi_fraud": "UPI Payment Fraud",
+            "suspicious_upi": "Suspicious UPI Payment",
+            "no_warning_signs": "Likely Legitimate UPI",
+        }.get(cat_code, "UPI Payment")
+    elif res.qr_type in ("text", "wifi"):
+        if res.level == "high":
+            res.category = "qr_scam"
+            res.category_label = "QR Payment Scam"
+        elif res.level in ("medium", "suspicious"):
+            res.category = "suspicious_qr"
+            res.category_label = "Suspicious QR Code"
+    elif res.qr_type == "url":
+        if res.level == "high" and res.category in ("none", "no_warning_signs"):
+            res.category = "qr_scam"
+            res.category_label = "QR Phishing / Fraud"
+
+    recs = list(res.recommendations)
+    if ALWAYS_RECOMMENDATION not in recs:
+        recs.insert(0, ALWAYS_RECOMMENDATION)
+    if res.level == "high":
+        for hr in [
+            "Do NOT approve this payment or enter your UPI PIN.",
+            "Entering your UPI PIN will DEBIT money from your bank account, not credit it.",
+            "If you were told you will receive money by scanning this QR code, this is 100% a scam.",
+            "Report fraudulent QR codes at cybercrime.gov.in or call helpline 1930.",
+        ]:
+            if hr not in recs:
+                recs.append(hr)
+    elif res.level in ("medium", "suspicious"):
+        for mr in [
+            "Verify the recipient's identity independently before sending funds.",
+            "Never enter your UPI PIN unless you intend to send money.",
+        ]:
+            if mr not in recs:
+                recs.append(mr)
+    res.recommendations = recs
+
+    reasons = "; ".join(i.label.lower() for i in res.indicators[:3])
+    res.summary = f"This QR code shows warning signs: {reasons}."
+    res.verification_status = "unverified"
+
+    return res
+
+
+def analyze_qr_content(content: str, context: str | None = None) -> QrResult:
+    """
+    Analyzes QR payload content:
+    - starts with upi:// -> analyze_upi
+    - looks like a web link (http/https or domain) -> analyze_url
+    - plain text -> likely_safe 'Plain Text QR' (suspicious if phone + prize/urgent words)
+    - empty -> unable_to_verify
+    Augmented with optional scan context.
+    """
+    res = _analyze_qr_content_base(content)
+    return _apply_context(res, context)
+
+
 # ---------------------------------------------------------------------------
 # 3. Compatibility Wrappers (for test_qr.py)
 # ---------------------------------------------------------------------------
 
-def analyze_qr_payload(payload: str) -> dict[str, Any]:
+def analyze_qr_payload(payload: str, context: str | None = None) -> dict[str, Any]:
     """Evaluates payload and returns standard analysis response dict."""
-    res = analyze_qr_content(payload)
+    res = analyze_qr_content(payload, context=context)
     return res.to_analysis_response()
 
 
-def analyze_qr_image(img_bytes: bytes) -> dict[str, Any]:
+def analyze_qr_image(img_bytes: bytes, context: str | None = None) -> dict[str, Any]:
     """Decodes in-memory image bytes and analyzes resulting QR payload."""
     decoded = decode_qr_image(img_bytes)
     if not decoded:
@@ -565,4 +681,4 @@ def analyze_qr_image(img_bytes: bytes) -> dict[str, Any]:
             "intel": [{"source": "garuda_lists", "status": "not_found"}],
             "engine_version": ENGINE_VERSION,
         }
-    return analyze_qr_payload(decoded)
+    return analyze_qr_payload(decoded, context=context)

@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
@@ -55,6 +55,10 @@ class QrAnalyzeRequest(BaseModel):
         default=True,
         description="Whether to persist the scan and its results in the database.",
     )
+    context: Optional[Literal["known_payee", "receive_money", "stranger_request"]] = Field(
+        default=None,
+        description="Optional scanning context: known_payee | receive_money | stranger_request",
+    )
 
     @field_validator("content")
     @classmethod
@@ -62,6 +66,13 @@ class QrAnalyzeRequest(BaseModel):
         if not v or not v.strip():
             raise ValueError("QR content cannot be empty or whitespace only.")
         return v.strip()
+
+    @field_validator("context", mode="before")
+    @classmethod
+    def validate_context(cls, v: Any) -> Optional[str]:
+        if v is None or v == "" or v == "null" or v == "none":
+            return None
+        return v
 
 
 class RiskInfo(BaseModel):

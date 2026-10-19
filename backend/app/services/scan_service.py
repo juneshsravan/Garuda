@@ -356,7 +356,12 @@ def analyze_url(
 # ------------------------------------------------------------------------------
 def qr_result_to_analysis(r) -> Dict[str, Any]:
     """Converts the QR analyzer's result into the AnalysisResponse shape."""
-    return r.to_analysis_response()
+    res = r.to_analysis_response()
+    if not res.get("indicators"):
+        res["confidence"] = 0.5
+        if res.get("extracted", {}).get("qr", {}).get("type") == "upi" or res.get("verification_status") in ("standard_psp_handle", "unverified", "plain_text", ""):
+            res["verification_status"] = "no_warning_signs_found"
+    return res
 
 
 def analyze_qr(
@@ -364,13 +369,14 @@ def analyze_qr(
     user_id: uuid.UUID,
     content: str,
     save: bool = True,
+    context: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Analyzes QR payload content with the static QR analyzer.
     Invalid input -> 422 (INVALID_QR) and nothing is saved. If save=True, persists through
     save_scan_record (scans, qr_codes, analysis_results, threat_indicators, urls).
     """
-    r = run_qr_analyzer(content)
+    r = run_qr_analyzer(content, context=context)
     if not r.valid:
         raise AppException(
             code="INVALID_QR",

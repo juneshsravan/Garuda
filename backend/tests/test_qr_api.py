@@ -71,20 +71,90 @@ def test_upi_scam_is_high(client):
 
 
 def test_safe_upi_is_likely_safe(client):
-    """'upi://pay?pa=ramesh123@oksbi&pn=Ramesh Kumar' -> likely_safe"""
+    """'upi://pay?pa=ramesh123@oksbi&pn=Ramesh Kumar' -> likely_safe with confidence 0.5"""
     token, _ = register_user(client, "upi_safe@example.com")
     headers = {"Authorization": f"Bearer {token}"}
 
     payload = {
         "content": "upi://pay?pa=ramesh123@oksbi&pn=Ramesh Kumar",
         "save": True,
+        "context": None,
     }
     resp = client.post("/api/analyze/qr", json=payload, headers=headers)
     assert resp.status_code == 200
     data = resp.json()
     assert data["risk"]["level"] == "likely_safe"
+    assert data["confidence"] == 0.5
+    assert data["verification_status"] == "no_warning_signs_found"
     assert data["extracted"]["qr"]["type"] == "upi"
     assert data["extracted"]["upi"]["pa"] == "ramesh123@oksbi"
+
+
+def test_ramesh_qr_context_receive_money_is_high(client):
+    """Ramesh QR with context 'receive_money' -> high with QR_RECEIVE_MONEY_CLAIM indicator"""
+    token, _ = register_user(client, "upi_rec_money@example.com")
+    headers = {"Authorization": f"Bearer {token}"}
+
+    payload = {
+        "content": "upi://pay?pa=ramesh123@oksbi&pn=Ramesh Kumar",
+        "save": True,
+        "context": "receive_money",
+    }
+    resp = client.post("/api/analyze/qr", json=payload, headers=headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["risk"]["level"] == "high"
+    assert data["risk"]["score"] >= 65
+
+    ind_codes = {i["code"]: i for i in data["indicators"]}
+    assert "QR_RECEIVE_MONEY_CLAIM" in ind_codes
+    ind = ind_codes["QR_RECEIVE_MONEY_CLAIM"]
+    assert ind["severity"] == "high"
+    assert ind["weight"] == 0.85
+    assert "QR codes can only SEND money" in ind["label"]
+
+
+def test_ramesh_qr_context_stranger_request_is_suspicious_or_medium(client):
+    """Ramesh QR with context 'stranger_request' -> suspicious or medium with QR_STRANGER_REQUEST"""
+    token, _ = register_user(client, "upi_stranger@example.com")
+    headers = {"Authorization": f"Bearer {token}"}
+
+    payload = {
+        "content": "upi://pay?pa=ramesh123@oksbi&pn=Ramesh Kumar",
+        "save": True,
+        "context": "stranger_request",
+    }
+    resp = client.post("/api/analyze/qr", json=payload, headers=headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["risk"]["level"] in ("suspicious", "medium")
+
+    ind_codes = {i["code"]: i for i in data["indicators"]}
+    assert "QR_STRANGER_REQUEST" in ind_codes
+    ind = ind_codes["QR_STRANGER_REQUEST"]
+    assert ind["severity"] == "medium"
+    assert ind["weight"] == 0.4
+    assert "stranger or caller" in ind["label"].lower()
+
+
+def test_image_endpoint_with_context_receive_money(client):
+    """Image endpoint with context 'receive_money' -> high"""
+    token, _ = register_user(client, "qr_img_context@example.com")
+    headers = {"Authorization": f"Bearer {token}"}
+
+    qr_content = "upi://pay?pa=ramesh123@oksbi&pn=Ramesh Kumar"
+    png_bytes = make_qr_png_bytes(qr_content)
+
+    resp = client.post(
+        "/api/analyze/qr/image",
+        files={"file": ("qr.png", png_bytes, "image/png")},
+        data={"save": "true", "context": "receive_money"},
+        headers=headers,
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["risk"]["level"] == "high"
+    assert any(i["code"] == "QR_RECEIVE_MONEY_CLAIM" for i in data["indicators"])
 
 
 def test_phishing_url_in_qr_is_high(client):
