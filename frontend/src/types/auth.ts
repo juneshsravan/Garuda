@@ -6,6 +6,7 @@ export interface User {
   full_name: string;
   role: "user" | "admin" | string;
   is_active: boolean;
+  is_email_verified?: boolean;
   email_verified_at: string | null;
   created_at?: string | null;
 }
@@ -46,4 +47,13 @@ export interface RegisterRequest {
 export interface LoginRequest {
   email: string;
   password: string;
+}
+
+export interface VerifyEmailRequest {
+  email: string;
+  code: string;
+}
+
+export interface ResendCodeRequest {
+  email: string;
 }

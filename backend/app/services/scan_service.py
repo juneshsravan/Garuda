@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session, joinedload, selectinload
 
 from app.core.errors import AppException
 from app.engine import engine
+from app.engine.analyzers.qr_analyzer import analyze_qr_content as run_qr_analyzer
 from app.engine.analyzers.url_analyzer import analyze_url as run_url_analyzer
 from app.models.scan import (
     AnalysisResult,
@@ -47,6 +48,9 @@ CATEGORY_LABELS: Dict[str, str] = {
     "restricted_adult": "Restricted Content (Adult)",
     "suspicious_link": "Suspicious Link",
     "no_warning_signs": "No Warning Signs Found",
+    "upi_fraud": "UPI Payment Fraud",
+    "suspicious_upi": "Suspicious UPI Payment",
+    "plain_text_qr": "Plain Text QR",
 }
 
 # Standard risk band labels
@@ -424,18 +428,40 @@ def analyze_url(
     return result
 
 
+# ------------------------------------------------------------------------------
+# QR analysis
+# ------------------------------------------------------------------------------
+def qr_result_to_analysis(r) -> Dict[str, Any]:
+    """Converts the QR analyzer's result into the AnalysisResponse shape."""
+    res = r.to_analysis_response()
+    if not res.get("indicators"):
+        res["confidence"] = 0.5
+        if res.get("extracted", {}).get("qr", {}).get("type") == "upi" or res.get("verification_status") in ("standard_psp_handle", "unverified", "plain_text", ""):
+            res["verification_status"] = "no_warning_signs_found"
+    return res
+
+
 def analyze_qr(
     db: Session,
     user_id: uuid.UUID,
-    payload: str,
+    content: str,
     save: bool = True,
+    context: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
-    Analyzes a QR code string/payload (UPI, URL, plain text) and checks for community reports.
-    If save=True, persists scans, qr_codes, analysis_results, and threat_indicators.
+    Analyzes QR payload content with the static QR analyzer.
+    Invalid input -> 422 (INVALID_QR) and nothing is saved. If save=True, persists through
+    save_scan_record (scans, qr_codes, analysis_results, threat_indicators, urls).
     """
-    from app.engine.analyzers.qr_analyzer import analyze_qr_payload
-    result = analyze_qr_payload(payload)
+    r = run_qr_analyzer(content, context=context)
+    if not r.valid:
+        raise AppException(
+            code="INVALID_QR",
+            message=r.error or "This doesn't look like a valid QR payload.",
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        )
+
+    result = qr_result_to_analysis(r)
 
     # Community warning: when a URL/UPI/phone has been reported by 2+ different users
     from app.services.report_service import check_community_reports
@@ -445,11 +471,16 @@ def analyze_qr(
         if isinstance(u, dict) and u.get("raw")
     ]
     extracted_upis = []
+    upi_dict = r.upi_data or {}
+    if upi_dict.get("pa"):
+        extracted_upis.append(upi_dict["pa"])
+    if upi_dict.get("pn"):
+        extracted_upis.append(upi_dict["pn"])
     upi_data = extracted.get("upi")
     if isinstance(upi_data, dict):
-        if upi_data.get("vpa"):
+        if upi_data.get("vpa") and upi_data["vpa"] not in extracted_upis:
             extracted_upis.append(upi_data["vpa"])
-        if upi_data.get("payee_name"):
+        if upi_data.get("payee_name") and upi_data["payee_name"] not in extracted_upis:
             extracted_upis.append(upi_data["payee_name"])
 
     community_ind = check_community_reports(
@@ -460,51 +491,35 @@ def analyze_qr(
     )
     if community_ind:
         result["indicators"].append(community_ind)
-        from app.engine.analyzers.text_rules import Indicator
-        from app.engine.analyzers.legitimacy import LegitimacySignal
-        from app.engine.scoring import calculate_score
-
-        ind_objs = [
-            Indicator(
-                code=i["code"],
-                label=i["label"],
-                severity=i["severity"],
-                weight=float(i["weight"]),
-                evidence=i.get("evidence"),
-            )
-            for i in result["indicators"]
-        ]
-        leg_objs = [
-            LegitimacySignal(
-                code=l["code"],
-                label=l["label"],
-                weight=float(l["weight"]),
-                evidence=l.get("evidence"),
-            )
-            for l in result.get("legitimacy_signals", [])
-        ]
-        score_res = calculate_score(risk_indicators=ind_objs, legitimacy_signals=leg_objs)
-        result["risk"]["score"] = score_res["score"]
-        result["risk"]["level"] = score_res["level"]
-        result["risk"]["label"] = score_res["label"]
+        from app.engine.scoring.bands import get_risk_band
+        from app.engine.analyzers.url_analyzer import noisy_or
+        weights = [float(i["weight"]) for i in result["indicators"]]
+        score = round(100 * noisy_or(weights))
+        level, label = get_risk_band(score)
+        result["risk"]["score"] = max(result["risk"]["score"], score)
+        if result["risk"]["score"] == score:
+            result["risk"]["level"] = level
+            result["risk"]["label"] = label
 
     scan_id = uuid.uuid4()
+
     if save:
+        upi_dict = r.upi_data or {}
         save_scan_record(
             db=db,
             user_id=user_id,
             scan_id=scan_id,
             scan_type="qr",
-            input_sha256=hashlib.sha256(payload.encode("utf-8")).hexdigest(),
+            input_sha256=hashlib.sha256(content.encode("utf-8")).hexdigest(),
             analysis_dict=result,
             qr_data={
-                "payload": payload,
-                "payload_type": result.get("payload_type", "other"),
-                "upi_payee": (extracted.get("upi") or {}).get("vpa"),
-                "upi_name": (extracted.get("upi") or {}).get("payee_name"),
-                "upi_amount": (extracted.get("upi") or {}).get("amount"),
+                "payload": content,
+                "payload_type": r.qr_type,
+                "upi_payee": upi_dict.get("pa"),
+                "upi_name": upi_dict.get("pn"),
+                "upi_amount": upi_dict.get("am"),
             },
-            urls_data=extracted.get("urls", []),
+            urls_data=result["extracted"]["urls"],
             persisted_content=True,
         )
         result["scan_id"] = str(scan_id)
@@ -535,6 +550,7 @@ def get_user_scans(
             joinedload(Scan.analysis_result),
             joinedload(Scan.message),
             selectinload(Scan.urls),
+            selectinload(Scan.qr_codes),
         )
     )
 
@@ -573,6 +589,8 @@ def get_user_scans(
         risk_label = RISK_LABELS.get(res.risk_level, res.risk_level.replace("_", " ").title())
         if s.message:
             preview = s.message.content[:120]
+        elif s.qr_codes:
+            preview = s.qr_codes[0].payload[:120]
         elif s.urls:
             preview = s.urls[0].raw_url[:120]
         else:

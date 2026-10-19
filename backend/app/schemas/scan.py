@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
@@ -29,7 +29,7 @@ class UrlAnalyzeRequest(BaseModel):
         ...,
         min_length=1,
         max_length=2048,
-        description="Web link to analyze.",
+        description="URL to analyze (1 to 2048 characters).",
     )
     save: bool = Field(
         default=True,
@@ -41,6 +41,37 @@ class UrlAnalyzeRequest(BaseModel):
     def validate_non_blank(cls, v: str) -> str:
         if not v or not v.strip():
             raise ValueError("URL cannot be empty or whitespace only.")
+        return v.strip()
+
+
+class QrAnalyzeRequest(BaseModel):
+    content: str = Field(
+        ...,
+        min_length=1,
+        max_length=4096,
+        description="QR payload content to analyze (1 to 4096 characters).",
+    )
+    save: bool = Field(
+        default=True,
+        description="Whether to persist the scan and its results in the database.",
+    )
+    context: Optional[Literal["known_payee", "receive_money", "stranger_request"]] = Field(
+        default=None,
+        description="Optional scanning context: known_payee | receive_money | stranger_request",
+    )
+
+    @field_validator("content")
+    @classmethod
+    def validate_non_blank(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError("QR content cannot be empty or whitespace only.")
+        return v.strip()
+
+    @field_validator("context", mode="before")
+    @classmethod
+    def validate_context(cls, v: Any) -> Optional[str]:
+        if v is None or v == "" or v == "null" or v == "none":
+            return None
         return v
 
 

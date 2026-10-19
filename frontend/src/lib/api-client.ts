@@ -238,10 +238,15 @@ export async function apiRequest<T>(
 
   const url = `${API_BASE_URL}${endpoint}`;
 
+  const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
+
   const headers: Record<string, string> = {
-    "Content-Type": "application/json",
     ...(options.headers as Record<string, string>),
   };
+
+  if (!isFormData && !headers["Content-Type"]) {
+    headers["Content-Type"] = "application/json";
+  }
 
   // If we have an in-memory access token, attach Bearer header
   if (memoryAccessToken) {
@@ -271,9 +276,11 @@ export async function apiRequest<T>(
       // 2. Retry the original request once with the new access token
       const retryHeaders: Record<string, string> = {
         ...(options.headers as Record<string, string>),
-        "Content-Type": "application/json",
         Authorization: `Bearer ${newToken}`,
       };
+      if (!isFormData && !retryHeaders["Content-Type"]) {
+        retryHeaders["Content-Type"] = "application/json";
+      }
       return apiRequest<T>(
         endpoint,
         {
@@ -356,6 +363,20 @@ export const authApi = {
       method: "GET",
     });
   },
+
+  verifyEmail(data: { email: string; code: string }): Promise<MessageResponse> {
+    return apiRequest<MessageResponse>("/api/auth/verify-email", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+  resendCode(data: { email: string }): Promise<MessageResponse> {
+    return apiRequest<MessageResponse>("/api/auth/resend-code", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
 };
 
 export const scanApi = {
@@ -363,6 +384,34 @@ export const scanApi = {
     return apiRequest<AnalysisResponse>("/api/analyze/message", {
       method: "POST",
       body: JSON.stringify(data),
+    });
+  },
+
+  analyzeQr(data: {
+    content: string;
+    save: boolean;
+    context?: "known_payee" | "receive_money" | "stranger_request" | null;
+  }): Promise<AnalysisResponse> {
+    return apiRequest<AnalysisResponse>("/api/analyze/qr", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+  analyzeQrImage(data: {
+    file: File | Blob;
+    save: boolean;
+    context?: "known_payee" | "receive_money" | "stranger_request" | null;
+  }): Promise<AnalysisResponse> {
+    const formData = new FormData();
+    formData.append("file", data.file, data.file instanceof File ? data.file.name : "qr_scan.png");
+    formData.append("save", String(data.save));
+    if (data.context) {
+      formData.append("context", data.context);
+    }
+    return apiRequest<AnalysisResponse>("/api/analyze/qr/image", {
+      method: "POST",
+      body: formData,
     });
   },
 

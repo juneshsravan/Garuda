@@ -1,7 +1,7 @@
 """Add report center fields to reports table
 
-Revision ID: 20261019_0002
-Revises: 20261006_0001
+Revision ID: 20261019_0003
+Revises: 20261019_0002
 Create Date: 2026-10-19 16:35:00.000000
 
 """
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = "20261019_0002"
-down_revision: Union[str, None] = "20261006_0001"
+revision: str = "20261019_0003"
+down_revision: Union[str, None] = "20261019_0002"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

@@ -23,8 +23,18 @@ class UserResponse(BaseModel):
     full_name: str
     role: str
     is_active: bool
+    is_email_verified: bool = False
     email_verified_at: Optional[datetime] = None
     created_at: Optional[datetime] = None
+
+
+class VerifyEmailRequest(BaseModel):
+    email: EmailStr = Field(..., description="Valid email address")
+    code: str = Field(..., min_length=6, max_length=6, description="6-digit verification code")
+
+
+class ResendCodeRequest(BaseModel):
+    email: EmailStr = Field(..., description="Valid email address")
 
 
 class AuthResponse(BaseModel):
