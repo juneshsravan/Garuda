@@ -336,6 +336,17 @@ export default function UrlAnalyzerPage() {
               <span className="text-[11px] font-mono text-slate-400">
                 Confidence: {Math.round(result.confidence * 100)}%
               </span>
+              {(result.risk.level === "medium" ||
+                result.risk.level === "high" ||
+                result.risk.level === "critical" ||
+                result.risk.score >= 45) && (
+                <Button asChild size="sm" className="gap-1.5 font-mono text-xs bg-purple-600 hover:bg-purple-700 text-white font-semibold h-7 px-3 mt-1">
+                  <Link href={result.scan_id ? `/reports?scan_id=${result.scan_id}` : `/reports`}>
+                    <ShieldAlert className="w-3.5 h-3.5" />
+                    Report this
+                  </Link>
+                </Button>
+              )}
             </div>
           </div>
 

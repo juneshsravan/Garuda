@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { showDevTools } from "@/lib/dev-tools";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ import {
   HardDrive,
   CheckCircle2,
   AlertTriangle,
+  ShieldAlert,
 } from "lucide-react";
 
 export default function QrAnalyzerPage() {
@@ -224,6 +226,15 @@ export default function QrAnalyzerPage() {
                 Scanning and entering your UPI PIN will <span className="underline">DEBIT</span> money from your account, not credit it.
               </p>
             </div>
+          </div>
+
+          <div className="flex items-center justify-end pt-2 border-t border-border/80">
+            <Button asChild size="sm" className="gap-1.5 font-mono text-xs bg-purple-600 hover:bg-purple-700 text-white font-semibold">
+              <Link href="/reports">
+                <ShieldAlert className="w-3.5 h-3.5" />
+                Report this QR / UPI
+              </Link>
+            </Button>
           </div>
         </div>
       )}

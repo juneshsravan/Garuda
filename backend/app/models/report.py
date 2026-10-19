@@ -5,6 +5,7 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Index,
+    Numeric,
     Sequence,
     String,
     Text,
@@ -45,15 +46,25 @@ class Report(Base, TimestampMixin):
         nullable=True,
         index=True,
     )
-    category: Mapped[str] = mapped_column(String(100), nullable=False)
-    title: Mapped[str] = mapped_column(String(255), nullable=False)
-    description: Mapped[str] = mapped_column(Text, nullable=False)
-    status: Mapped[str] = mapped_column(String(50), nullable=False, default="submitted")  # submitted | under_review | needs_info | closed
+    # Core report center fields
+    scam_type: Mapped[str] = mapped_column(String(50), nullable=False, default="other")  # sms/whatsapp/call/link/qr_upi/email/other
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    scammer_phone: Mapped[Optional[str]] = mapped_column(String(50), nullable=True, index=True)
+    scammer_upi: Mapped[Optional[str]] = mapped_column(String(255), nullable=True, index=True)
+    scammer_url: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    amount_lost: Mapped[Optional[float]] = mapped_column(Numeric(12, 2), nullable=True)
     incident_date: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    status: Mapped[str] = mapped_column(String(50), nullable=False, default="submitted")  # submitted | reviewed
+
+    # Legacy compatibility fields
+    category: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    title: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     __table_args__ = (
         Index("ix_reports_user_id_created_at_desc", "user_id", text("created_at DESC")),
         Index("ix_reports_status", "status"),
+        Index("ix_reports_scam_type", "scam_type"),
     )
 
     user = relationship("User", back_populates="reports")

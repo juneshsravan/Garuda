@@ -294,8 +294,12 @@ def analyze_qr_payload(payload: str) -> dict[str, Any]:
     # --------------------------------------------------------------------------
     elif payload_type == "url":
         url_analysis = analyze_url_payload(stripped_payload)
-        risk_indicators.extend(url_analysis.get("indicators", []))
-        legitimacy_signals.extend(url_analysis.get("legitimacy_signals", []))
+        if isinstance(url_analysis, dict):
+            risk_indicators.extend(url_analysis.get("indicators", []))
+            legitimacy_signals.extend(url_analysis.get("legitimacy_signals", []))
+        else:
+            risk_indicators.extend(getattr(url_analysis, "indicators", []))
+            legitimacy_signals.extend(getattr(url_analysis, "legitimacy_signals", []))
         extracted_urls.append({
             "raw": stripped_payload,
             "normalized": stripped_payload,

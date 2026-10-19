@@ -110,6 +110,15 @@ class Indicator:
     weight: float      # 0.0 - 0.9  (never 1.0: heuristics are never 100% certain)
     evidence: str
 
+    def to_dict(self) -> dict:
+        return {
+            "code": self.code,
+            "label": self.label,
+            "severity": self.severity,
+            "weight": self.weight,
+            "evidence": self.evidence,
+        }
+
 
 @dataclass
 class UrlResult:
