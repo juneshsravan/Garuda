@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session, joinedload, selectinload
 
 from app.core.errors import AppException
 from app.engine import engine
+from app.engine.analyzers.qr_analyzer import analyze_qr_content as run_qr_analyzer
 from app.engine.analyzers.url_analyzer import analyze_url as run_url_analyzer
 from app.models.scan import (
     AnalysisResult,
@@ -47,6 +48,9 @@ CATEGORY_LABELS: Dict[str, str] = {
     "restricted_adult": "Restricted Content (Adult)",
     "suspicious_link": "Suspicious Link",
     "no_warning_signs": "No Warning Signs Found",
+    "upi_fraud": "UPI Payment Fraud",
+    "suspicious_upi": "Suspicious UPI Payment",
+    "plain_text_qr": "Plain Text QR",
 }
 
 # Standard risk band labels
@@ -347,6 +351,68 @@ def analyze_url(
     return result
 
 
+# ------------------------------------------------------------------------------
+# QR analysis
+# ------------------------------------------------------------------------------
+def qr_result_to_analysis(r) -> Dict[str, Any]:
+    """Converts the QR analyzer's result into the AnalysisResponse shape."""
+    res = r.to_analysis_response()
+    if not res.get("indicators"):
+        res["confidence"] = 0.5
+        if res.get("extracted", {}).get("qr", {}).get("type") == "upi" or res.get("verification_status") in ("standard_psp_handle", "unverified", "plain_text", ""):
+            res["verification_status"] = "no_warning_signs_found"
+    return res
+
+
+def analyze_qr(
+    db: Session,
+    user_id: uuid.UUID,
+    content: str,
+    save: bool = True,
+    context: Optional[str] = None,
+) -> Dict[str, Any]:
+    """
+    Analyzes QR payload content with the static QR analyzer.
+    Invalid input -> 422 (INVALID_QR) and nothing is saved. If save=True, persists through
+    save_scan_record (scans, qr_codes, analysis_results, threat_indicators, urls).
+    """
+    r = run_qr_analyzer(content, context=context)
+    if not r.valid:
+        raise AppException(
+            code="INVALID_QR",
+            message=r.error or "This doesn't look like a valid QR payload.",
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        )
+
+    result = qr_result_to_analysis(r)
+    scan_id = uuid.uuid4()
+
+    if save:
+        upi_dict = r.upi_data or {}
+        save_scan_record(
+            db=db,
+            user_id=user_id,
+            scan_id=scan_id,
+            scan_type="qr",
+            input_sha256=hashlib.sha256(content.encode("utf-8")).hexdigest(),
+            analysis_dict=result,
+            qr_data={
+                "payload": content,
+                "payload_type": r.qr_type,
+                "upi_payee": upi_dict.get("pa"),
+                "upi_name": upi_dict.get("pn"),
+                "upi_amount": upi_dict.get("am"),
+            },
+            urls_data=result["extracted"]["urls"],
+            persisted_content=True,
+        )
+        result["scan_id"] = str(scan_id)
+    else:
+        result["scan_id"] = None
+
+    return result
+
+
 def get_user_scans(
     db: Session,
     user_id: uuid.UUID,
@@ -368,6 +434,7 @@ def get_user_scans(
             joinedload(Scan.analysis_result),
             joinedload(Scan.message),
             selectinload(Scan.urls),
+            selectinload(Scan.qr_codes),
         )
     )
 
@@ -406,6 +473,8 @@ def get_user_scans(
         risk_label = RISK_LABELS.get(res.risk_level, res.risk_level.replace("_", " ").title())
         if s.message:
             preview = s.message.content[:120]
+        elif s.qr_codes:
+            preview = s.qr_codes[0].payload[:120]
         elif s.urls:
             preview = s.urls[0].raw_url[:120]
         else:
