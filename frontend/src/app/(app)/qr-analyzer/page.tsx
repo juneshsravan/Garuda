@@ -1112,6 +1112,15 @@ export default function QrAnalyzerPage() {
               </Link>
             )}
           </div>
+
+          <div className="flex items-center justify-end pt-2 border-t border-border/80">
+            <Button asChild size="sm" className="gap-1.5 font-mono text-xs bg-purple-600 hover:bg-purple-700 text-white font-semibold">
+              <Link href={result.scan_id ? `/reports?scan_id=${result.scan_id}` : "/reports"}>
+                <ShieldAlert className="w-3.5 h-3.5" />
+                Report this QR / UPI
+              </Link>
+            </Button>
+          </div>
         </div>
       )}
     </div>

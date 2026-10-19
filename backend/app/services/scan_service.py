@@ -239,6 +239,58 @@ def analyze_message(
     # Call pure Python engine.analyze (single source of truth)
     result = engine.analyze(raw_text=text, scan_id=str(scan_id) if save else None)
 
+    # Community warning: when a URL/UPI/phone has been reported by 2+ different users
+    from app.services.report_service import check_community_reports
+    extracted = result.get("extracted", {})
+    extracted_urls = [
+        u.get("raw") for u in extracted.get("urls", [])
+        if isinstance(u, dict) and u.get("raw")
+    ]
+    extracted_upis = []
+    upi_info = extracted.get("upi")
+    if isinstance(upi_info, dict):
+        extracted_upis.extend(upi_info.get("vpas", []))
+    elif isinstance(upi_info, str):
+        extracted_upis.append(upi_info)
+
+    extracted_phones = extracted.get("phone", []) or []
+
+    community_ind = check_community_reports(
+        db=db,
+        urls=extracted_urls,
+        upis=extracted_upis,
+        phones=extracted_phones,
+    )
+    if community_ind:
+        result["indicators"].append(community_ind)
+        from app.engine.analyzers.text_rules import Indicator
+        from app.engine.analyzers.legitimacy import LegitimacySignal
+        from app.engine.scoring import calculate_score
+
+        ind_objs = [
+            Indicator(
+                code=i["code"],
+                label=i["label"],
+                severity=i["severity"],
+                weight=float(i["weight"]),
+                evidence=i.get("evidence"),
+            )
+            for i in result["indicators"]
+        ]
+        leg_objs = [
+            LegitimacySignal(
+                code=l["code"],
+                label=l["label"],
+                weight=float(l["weight"]),
+                evidence=l.get("evidence"),
+            )
+            for l in result.get("legitimacy_signals", [])
+        ]
+        score_res = calculate_score(risk_indicators=ind_objs, legitimacy_signals=leg_objs)
+        result["risk"]["score"] = score_res["score"]
+        result["risk"]["level"] = score_res["level"]
+        result["risk"]["label"] = score_res["label"]
+
     if save:
         save_scan_record(
             db=db,
@@ -331,6 +383,31 @@ def analyze_url(
         )
 
     result = url_result_to_analysis(r)
+
+    # Community warning: when a URL/UPI/phone has been reported by 2+ different users
+    from app.services.report_service import check_community_reports
+    community_ind = check_community_reports(
+        db=db,
+        urls=[url, r.normalized_url, r.registered_domain],
+        upis=[],
+        phones=[],
+    )
+    if community_ind:
+        result["indicators"].append(community_ind)
+        from app.engine.scoring.bands import get_risk_band
+        from app.engine.analyzers.url_analyzer import noisy_or
+        weights = [float(i["weight"]) for i in result["indicators"]]
+        score = round(100 * noisy_or(weights))
+        level, label = get_risk_band(score)
+        result["risk"]["score"] = score
+        result["risk"]["level"] = level
+        result["risk"]["label"] = label
+        if result["category"]["code"] == "no_warning_signs":
+            result["category"] = {
+                "code": "suspicious_link",
+                "label": CATEGORY_LABELS.get("suspicious_link", "Suspicious Link"),
+            }
+
     scan_id = uuid.uuid4()
 
     if save:
@@ -385,6 +462,45 @@ def analyze_qr(
         )
 
     result = qr_result_to_analysis(r)
+
+    # Community warning: when a URL/UPI/phone has been reported by 2+ different users
+    from app.services.report_service import check_community_reports
+    extracted = result.get("extracted", {})
+    extracted_urls = [
+        u.get("raw") for u in extracted.get("urls", [])
+        if isinstance(u, dict) and u.get("raw")
+    ]
+    extracted_upis = []
+    upi_dict = r.upi_data or {}
+    if upi_dict.get("pa"):
+        extracted_upis.append(upi_dict["pa"])
+    if upi_dict.get("pn"):
+        extracted_upis.append(upi_dict["pn"])
+    upi_data = extracted.get("upi")
+    if isinstance(upi_data, dict):
+        if upi_data.get("vpa") and upi_data["vpa"] not in extracted_upis:
+            extracted_upis.append(upi_data["vpa"])
+        if upi_data.get("payee_name") and upi_data["payee_name"] not in extracted_upis:
+            extracted_upis.append(upi_data["payee_name"])
+
+    community_ind = check_community_reports(
+        db=db,
+        urls=extracted_urls,
+        upis=extracted_upis,
+        phones=[],
+    )
+    if community_ind:
+        result["indicators"].append(community_ind)
+        from app.engine.scoring.bands import get_risk_band
+        from app.engine.analyzers.url_analyzer import noisy_or
+        weights = [float(i["weight"]) for i in result["indicators"]]
+        score = round(100 * noisy_or(weights))
+        level, label = get_risk_band(score)
+        result["risk"]["score"] = max(result["risk"]["score"], score)
+        if result["risk"]["score"] == score:
+            result["risk"]["level"] = level
+            result["risk"]["label"] = label
+
     scan_id = uuid.uuid4()
 
     if save:

@@ -42,10 +42,10 @@ def mock_email_sender(monkeypatch):
 def clean_test_tables():
     """Wipes test tables before each test to ensure test isolation."""
     with test_engine.begin() as conn:
-        conn.execute(text("TRUNCATE TABLE audit_logs, sessions, email_verification_codes, users, scans CASCADE;"))
+        conn.execute(text("TRUNCATE TABLE audit_logs, sessions, email_verification_codes, users, scans, reports CASCADE;"))
     yield
     with test_engine.begin() as conn:
-        conn.execute(text("TRUNCATE TABLE audit_logs, sessions, email_verification_codes, users, scans CASCADE;"))
+        conn.execute(text("TRUNCATE TABLE audit_logs, sessions, email_verification_codes, users, scans, reports CASCADE;"))
 
 
 @pytest.fixture

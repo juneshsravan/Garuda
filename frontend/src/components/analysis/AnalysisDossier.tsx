@@ -194,16 +194,28 @@ export function AnalysisDossier({
             </div>
           </div>
 
-          {analysis.scan_id && showHistoryLink && (
-            <div className="border-t border-border/80 pt-2.5">
+          {/* Action buttons */}
+          <div className="border-t border-border/80 pt-2.5 space-y-2">
+            {(analysis.risk?.level === "medium" ||
+              analysis.risk?.level === "high" ||
+              analysis.risk?.level === "critical" ||
+              score >= 45) && (
+              <Button asChild size="sm" className="w-full text-xs font-mono gap-1.5 h-8 bg-purple-600 hover:bg-purple-700 text-white font-semibold">
+                <Link href={analysis.scan_id ? `/reports?scan_id=${analysis.scan_id}` : "/reports"}>
+                  <ShieldAlert className="w-3.5 h-3.5" />
+                  <span>Report this</span>
+                </Link>
+              </Button>
+            )}
+            {analysis.scan_id && showHistoryLink && (
               <Button asChild variant="outline" size="sm" className="w-full text-xs font-mono gap-1.5 h-8">
                 <Link href={`/scan/${analysis.scan_id}`}>
                   <span>Inspect Full Dossier</span>
                   <ChevronRight className="w-3.5 h-3.5" />
                 </Link>
               </Button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 

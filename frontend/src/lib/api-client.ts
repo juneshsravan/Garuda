@@ -12,6 +12,11 @@ import {
   ScanListResponse,
 } from "@/types/analysis";
 import { DashboardStatsResponse } from "@/types/dashboard";
+import {
+  CreateReportRequest,
+  ReportItem,
+  ReportListResponse,
+} from "@/types/report";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -444,6 +449,27 @@ export const scanApi = {
 export const dashboardApi = {
   getStats(): Promise<DashboardStatsResponse> {
     return apiRequest<DashboardStatsResponse>("/api/dashboard/stats", {
+      method: "GET",
+    });
+  },
+};
+
+export const reportApi = {
+  createReport(data: CreateReportRequest): Promise<ReportItem> {
+    return apiRequest<ReportItem>("/api/reports", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+  listReports(): Promise<ReportListResponse> {
+    return apiRequest<ReportListResponse>("/api/reports", {
+      method: "GET",
+    });
+  },
+
+  getReport(id: string): Promise<ReportItem> {
+    return apiRequest<ReportItem>(`/api/reports/${id}`, {
       method: "GET",
     });
   },
