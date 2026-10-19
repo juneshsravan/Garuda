@@ -12,6 +12,7 @@ import { LoadingState } from "@/components/ui/states";
 import { loginSchema, LoginFormData } from "@/lib/validations/auth";
 import { Eye, EyeOff, AlertCircle, Clock, Loader2, ArrowRight } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { IntroGate, ReplayIntroButton } from "@/components/intro/IntroGate";
 
 function LoginForm() {
   const router = useRouter();
@@ -240,6 +241,11 @@ function LoginForm() {
         <div className="mt-6 text-center text-[11px] text-muted-foreground font-mono">
           Protected by Argon2id cryptographic password hashing.
         </div>
+
+        {/* Replay Intro */}
+        <div className="mt-3 text-center">
+          <ReplayIntroButton className="text-[11px] font-mono text-muted-foreground hover:text-accent-cyan transition-colors" />
+        </div>
       </div>
     </div>
   );
@@ -247,8 +253,10 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <React.Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-background"><LoadingState message="Loading login console..." /></div>}>
-      <LoginForm />
-    </React.Suspense>
+    <IntroGate>
+      <React.Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-background"><LoadingState message="Loading login console..." /></div>}>
+        <LoginForm />
+      </React.Suspense>
+    </IntroGate>
   );
 }
