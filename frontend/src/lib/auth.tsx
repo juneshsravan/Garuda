@@ -100,8 +100,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           password,
           full_name: fullName,
         });
-        setAccessToken(res.access_token);
-        setUser(res.user);
+        if (res.user && res.user.is_email_verified) {
+          setAccessToken(res.access_token);
+          setUser(res.user);
+        } else {
+          setAccessToken(null);
+          setUser(null);
+        }
         return { success: true, user: res.user };
       } catch (err: unknown) {
         if (err instanceof ApiClientError) {

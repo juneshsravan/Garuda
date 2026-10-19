@@ -1,7 +1,9 @@
+import logging
+import secrets
 from datetime import datetime, timedelta, timezone
-from typing import Optional
+from typing import Dict, Optional
 from fastapi import APIRouter, Cookie, Depends, Header, Request, Response, status
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session as DBSession
 
 from app.api.deps import get_current_user
@@ -16,19 +18,31 @@ from app.core.security import (
     verify_password,
 )
 from app.db.session import get_db
-from app.models.user import Session as UserSession, User
+from app.models.user import EmailVerificationCode, Session as UserSession, User
 from app.schemas.auth import (
     AuthResponse,
     MessageResponse,
+    ResendCodeRequest,
     TokenRefreshResponse,
     UserLoginRequest,
     UserMeResponse,
     UserRegisterRequest,
     UserResponse,
+    VerifyEmailRequest,
 )
 from app.services.audit_service import log_audit
+from app.services.email_service import send_verification_email
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
+logger = logging.getLogger("garuda.auth")
+
+# Cooldown tracking for resend-code (60-second limit per email)
+_resend_cooldowns: Dict[str, datetime] = {}
+
+
+def reset_resend_cooldowns() -> None:
+    """Helper for testing to reset resend rate limit cooldowns."""
+    _resend_cooldowns.clear()
 
 
 def _set_refresh_cookie(response: Response, refresh_token: str) -> None:
@@ -89,11 +103,36 @@ def register(
         full_name=payload.full_name,
         role="user",
         is_active=True,
+        is_email_verified=False,
         email_verified_at=None,
     )
     db.add(user)
     db.commit()
     db.refresh(user)
+
+    # Generate 6-digit verification code using secrets module
+    raw_code = f"{secrets.randbelow(1_000_000):06d}"
+    now = datetime.now(timezone.utc)
+
+    # Invalidate any previous codes immediately
+    db.execute(
+        update(EmailVerificationCode)
+        .where(EmailVerificationCode.user_id == user.id, EmailVerificationCode.used_at.is_(None))
+        .values(used_at=now)
+    )
+
+    code_record = EmailVerificationCode(
+        user_id=user.id,
+        code_hash=hash_token(raw_code),
+        expires_at=now + timedelta(minutes=10),
+        attempts=0,
+        used_at=None,
+    )
+    db.add(code_record)
+    db.commit()
+
+    # Send verification email
+    send_verification_email(user.email, raw_code)
 
     # Create access token and refresh token
     access_token = create_access_token(
@@ -128,6 +167,165 @@ def register(
         user=UserResponse.model_validate(user),
         access_token=access_token,
         token_type="bearer",
+    )
+
+
+@router.post("/verify-email", response_model=MessageResponse)
+@limiter.limit("10/minute")
+def verify_email(
+    request: Request,
+    payload: VerifyEmailRequest,
+    db: DBSession = Depends(get_db),
+):
+    """
+    Verifies user's email with the 6-digit verification code.
+    Max 5 wrong attempts per code. Used codes cannot be reused.
+    """
+    user = db.execute(
+        select(User).where(User.email == payload.email)
+    ).scalar_one_or_none()
+
+    if not user:
+        raise AppException(
+            code="INVALID_CODE",
+            message="Invalid or expired verification code.",
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if user.is_email_verified:
+        return MessageResponse(message="Email is already verified.")
+
+    # Find latest verification code for this user
+    code_record = db.execute(
+        select(EmailVerificationCode)
+        .where(EmailVerificationCode.user_id == user.id)
+        .order_by(EmailVerificationCode.created_at.desc())
+    ).scalars().first()
+
+    if not code_record or code_record.used_at is not None:
+        raise AppException(
+            code="INVALID_CODE",
+            message="Invalid or expired verification code.",
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+    now = datetime.now(timezone.utc)
+    code_expires = code_record.expires_at
+    if code_expires.tzinfo is None:
+        code_expires = code_expires.replace(tzinfo=timezone.utc)
+
+    if code_record.attempts >= 5:
+        raise AppException(
+            code="MAX_ATTEMPTS_EXCEEDED",
+            message="Maximum verification attempts exceeded. Please request a new code.",
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if now > code_expires:
+        raise AppException(
+            code="CODE_EXPIRED",
+            message="Verification code has expired. Please request a new code.",
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if hash_token(payload.code.strip()) != code_record.code_hash:
+        code_record.attempts += 1
+        db.commit()
+        if code_record.attempts >= 5:
+            raise AppException(
+                code="MAX_ATTEMPTS_EXCEEDED",
+                message="Maximum verification attempts exceeded. Please request a new code.",
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
+        remaining = 5 - code_record.attempts
+        raise AppException(
+            code="INVALID_CODE",
+            message=f"Invalid verification code. {remaining} {'attempt' if remaining == 1 else 'attempts'} remaining.",
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+    # Successfully verified!
+    code_record.used_at = now
+    user.is_email_verified = True
+    user.email_verified_at = now
+    log_audit(
+        db=db,
+        action="verify_email",
+        entity_type="user",
+        actor_user_id=user.id,
+        entity_id=str(user.id),
+        ip=get_client_ip(request),
+        metadata={"email": user.email},
+    )
+    db.commit()
+
+    return MessageResponse(message="Email verified successfully. You can now log in.")
+
+
+@router.post("/resend-code", response_model=MessageResponse)
+@limiter.limit("10/minute")
+def resend_code(
+    request: Request,
+    payload: ResendCodeRequest,
+    db: DBSession = Depends(get_db),
+):
+    """
+    Resends a fresh 6-digit verification code (once per 60 seconds).
+    Invalidates any previous code immediately.
+    Does not reveal whether an email exists.
+    """
+    now = datetime.now(timezone.utc)
+    email_key = payload.email.strip().lower()
+
+    # Rate limiting: once per 60 seconds (must apply to all requests without leaking email existence)
+    if email_key in _resend_cooldowns:
+        last_sent = _resend_cooldowns[email_key]
+        if (now - last_sent).total_seconds() < 60:
+            raise AppException(
+                code="RATE_LIMIT_EXCEEDED",
+                message="Please wait 60 seconds before requesting another verification code.",
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            )
+
+    _resend_cooldowns[email_key] = now
+
+    user = db.execute(
+        select(User).where(User.email == payload.email)
+    ).scalar_one_or_none()
+
+    if user and not user.is_email_verified:
+        # Invalidate previous codes immediately
+        db.execute(
+            update(EmailVerificationCode)
+            .where(EmailVerificationCode.user_id == user.id, EmailVerificationCode.used_at.is_(None))
+            .values(used_at=now)
+        )
+
+        raw_code = f"{secrets.randbelow(1_000_000):06d}"
+        code_record = EmailVerificationCode(
+            user_id=user.id,
+            code_hash=hash_token(raw_code),
+            expires_at=now + timedelta(minutes=10),
+            attempts=0,
+            used_at=None,
+        )
+        db.add(code_record)
+        db.commit()
+
+        log_audit(
+            db=db,
+            action="resend_verification_code",
+            entity_type="user",
+            actor_user_id=user.id,
+            entity_id=str(user.id),
+            ip=get_client_ip(request),
+            metadata={"email": user.email},
+        )
+
+        send_verification_email(user.email, raw_code)
+
+    return MessageResponse(
+        message="If the email is registered, a new verification code has been sent."
     )
 
 
@@ -169,10 +367,10 @@ def login(
             status_code=status.HTTP_403_FORBIDDEN,
         )
 
-    if settings.EMAIL_VERIFICATION_REQUIRED and not user.email_verified_at:
+    if settings.EMAIL_VERIFICATION_REQUIRED and not user.is_email_verified:
         raise AppException(
             code="EMAIL_NOT_VERIFIED",
-            message="Email verification is required before login.",
+            message="Email verification is required before login. Please verify your email.",
             status_code=status.HTTP_403_FORBIDDEN,
         )
 

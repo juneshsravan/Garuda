@@ -24,14 +24,28 @@ def verify_test_database():
         assert "test" in str(res).lower(), f"Expected test database, connected to: {res}"
 
 
+from unittest.mock import MagicMock
+from app.api.routes.auth import reset_resend_cooldowns
+
+
+@pytest.fixture(autouse=True)
+def mock_email_sender(monkeypatch):
+    """Rule: Never send real emails in tests. Mock email sender and reset cooldowns."""
+    mock_send = MagicMock(return_value=True)
+    monkeypatch.setattr("app.services.email_service.send_verification_email", mock_send)
+    monkeypatch.setattr("app.api.routes.auth.send_verification_email", mock_send)
+    reset_resend_cooldowns()
+    return mock_send
+
+
 @pytest.fixture(autouse=True)
 def clean_test_tables():
     """Wipes test tables before each test to ensure test isolation."""
     with test_engine.begin() as conn:
-        conn.execute(text("TRUNCATE TABLE audit_logs, sessions, users, scans CASCADE;"))
+        conn.execute(text("TRUNCATE TABLE audit_logs, sessions, email_verification_codes, users, scans CASCADE;"))
     yield
     with test_engine.begin() as conn:
-        conn.execute(text("TRUNCATE TABLE audit_logs, sessions, users, scans CASCADE;"))
+        conn.execute(text("TRUNCATE TABLE audit_logs, sessions, email_verification_codes, users, scans CASCADE;"))
 
 
 @pytest.fixture

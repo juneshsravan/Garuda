@@ -59,6 +59,10 @@ function LoginForm() {
       const result = await login(data.email, data.password);
 
       if (!result.success) {
+        if (result.code === "EMAIL_NOT_VERIFIED") {
+          router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
+          return;
+        }
         setApiError(result.error || "Invalid email or password.");
         setIsSubmitting(false);
         return;
