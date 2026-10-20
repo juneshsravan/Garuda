@@ -76,6 +76,7 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str = ""
     SMTP_APP_PASSWORD: Optional[str] = None
     EMAIL_FROM: str = ""
+    BREVO_API_KEY: str | None = None
 
     @property
     def effective_smtp_password(self) -> str:
